@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WORKKIT · 나의 작업 도구함</title>
-<meta name="description" content="HEIC 변환, HEX 색상 추출, QR 코드 제작, 유튜브 다운로더, 파일 번호 매기기를 한곳에서.">
+<meta name="description" content="HEIC 변환, HEX 색상 추출, PDF 도구, QR 코드 제작, 유튜브 다운로더, 파일 번호 매기기를 한곳에서.">
 <meta name="theme-color" content="#131313">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://workkit-tools.vercel.app/">
 <meta property="og:title" content="WORKKIT · 나의 작업 도구함">
-<meta property="og:description" content="HEIC 변환, HEX 색상 추출, QR 코드 제작을 한곳에서.">
+<meta property="og:description" content="HEIC 변환, HEX 색상 추출, PDF 도구, QR 코드 제작을 한곳에서.">
 <meta property="og:image" content="https://workkit-tools.vercel.app/assets/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -161,6 +161,31 @@ canvas{display:block;max-width:100%;height:auto;border-radius:8px;cursor:crossha
 ol.steps{margin:0;padding-left:20px;color:var(--sub)}
 ol.steps li+li{margin-top:4px}
 
+/* PDF 도구 */
+.flist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.flist li{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--sunken)}
+.flist li.dragging{opacity:.4}
+.flist li.drop-before{box-shadow:0 -2px 0 var(--accent)}
+.flist .grip{color:var(--sub);cursor:grab;font-size:16px;display:flex}
+.flist .num{width:22px;text-align:center;color:var(--accent);font-weight:800;font-size:12px}
+.flist img{width:36px;height:36px;object-fit:cover;border-radius:6px;background:var(--bg);flex:none}
+.flist .meta{flex:1;min-width:0;font-size:12px;color:var(--sub)}
+.flist .meta b{display:block;color:var(--text);font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon-btn{display:inline-grid;place-items:center;width:30px;height:30px;border:1px solid var(--line2);border-radius:7px;background:var(--bg);color:var(--sub);font-size:14px;flex:none}
+.icon-btn:hover:not(:disabled){color:var(--text);border-color:var(--accent)}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:12px;max-height:520px;overflow:auto;padding:4px}
+.thumb{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 8px 6px;border:1px solid var(--line);border-radius:10px;background:var(--sunken);color:var(--sub);font-size:12px;font-weight:700}
+.thumb .pg{width:100%;aspect-ratio:1/1.414;display:grid;place-items:center;background:#2a2a2a;border-radius:4px;overflow:hidden}
+.thumb canvas{cursor:pointer;transition:transform .2s;max-width:100%;max-height:100%;border-radius:2px;background:#fff}
+.thumb[aria-pressed=true]{border-color:var(--accent);background:var(--accent-bg);color:var(--text)}
+.thumb[aria-pressed=true]::after{content:"✓";position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#06221c;font-size:12px;display:grid;place-items:center}
+.thumb .rot{position:absolute;top:6px;left:6px;font-size:10px;padding:1px 5px;border-radius:5px;background:var(--bg);color:var(--accent)}
+.prog{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .15s}
+.win-card{border:1px solid var(--line2);border-radius:12px;padding:16px;background:var(--sunken)}
+.conv{display:grid;grid-template-columns:1fr auto 1fr;gap:6px 10px;font-size:13px;align-items:center;max-width:420px}
+.conv span:nth-child(3n+2){color:var(--accent)}
+
 footer{display:flex;justify-content:space-between;gap:12px;margin-top:28px;color:var(--sub);font-size:11px;flex-wrap:wrap}
 
 @media(max-width:759px){
@@ -190,6 +215,7 @@ footer{display:flex;justify-content:space-between;gap:12px;margin-top:28px;color
     <button class="filter" data-cat="전체" aria-pressed="true">전체</button>
     <button class="filter" data-cat="이미지" aria-pressed="false">이미지</button>
     <button class="filter" data-cat="영상" aria-pressed="false">영상</button>
+    <button class="filter" data-cat="문서" aria-pressed="false">문서</button>
     <button class="filter" data-cat="유틸리티" aria-pressed="false">유틸리티</button>
    </div>
    <label class="search"><i data-i="search"></i><input type="search" placeholder="도구 검색" aria-label="도구 검색"></label>
@@ -223,7 +249,13 @@ upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="1
 download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
 copy:'<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
 external:'<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
-trash:'<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>'
+trash:'<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+'file-text':'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+'arrow-up':'<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',
+'arrow-down':'<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>',
+x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+'rotate-cw':'<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>',
+grip:'<circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/>'
 };
 const icon=n=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]||''}</svg>`;
 const paint=el=>el.querySelectorAll('i[data-i]').forEach(i=>i.outerHTML=icon(i.dataset.i));
@@ -239,6 +271,7 @@ const TOOL_LIST=[
  {id:'heic',name:'HEIC 변환기',kind:'이미지',icon:'images',desc:'아이폰 사진을 JPG·PNG로 한 번에 변환',foot:'WINDOWS · ZIP',tags:'아이폰 사진 jpg png 변환 heic',run:()=>dlTool('heic')},
  {id:'hex',name:'HEX 코드 추출기',kind:'이미지',icon:'pipette',desc:'사진 속 색을 클릭해 HEX·RGB 추출',foot:'HEX / RGB',tags:'색상 컬러 rgb 스포이드 hex',run:()=>hexTool()},
  {id:'yt',name:'유튜브 다운로드',kind:'영상',icon:'youtube',desc:'링크만 넣으면 편집용 MP4·MP3로 저장',foot:'WINDOWS · ZIP',tags:'youtube 영상 다운로드 mp4 mp3',run:()=>dlTool('yt')},
+ {id:'pdf',name:'PDF 도구',kind:'문서',icon:'file-text',desc:'PDF 합치기·페이지 떼어내기, 이미지↔PDF, 한글·워드↔PDF',foot:'브라우저 · WINDOWS',tags:'pdf 병합 합치기 분할 나누기 추출 페이지 삭제 회전 이미지 jpg png 한글 hwp 워드 word docx 변환',run:()=>pdfTool()},
  {id:'qr',name:'QR 코드 제작툴',kind:'유틸리티',icon:'qr-code',desc:'링크·텍스트·이미지를 QR로',foot:'PNG / SVG',tags:'qr 큐알 링크 텍스트 이미지 업로드',run:()=>qrTool()},
  {id:'oe',name:'홀짝 번호 매기기',kind:'유틸리티',icon:'list',desc:'폴더 속 파일에 01·03 / 02·04 번호를 한 번에',foot:'WINDOWS · ZIP',tags:'파일 이름 번호 홀수 짝수 일괄 변경 rename',run:()=>dlTool('oe')}
 ];
@@ -350,6 +383,7 @@ function hexTool(){
 const DL={
  heic:{file:'/downloads/heic-converter-v3.zip',ver:'v3',size:'7KB',sha:'6d8dfbe003c846185aac3c4225df341c890ad68b7b4fcbdb3cb06d01a0c84271',steps:['ZIP 압축을 모두 풉니다.','RUN_ME.cmd를 실행합니다.','첫 실행 때 변환 엔진(ImageMagick)을 내려받습니다.']},
  oe:{file:'/downloads/oddeven-renamer-v2.zip',ver:'v2.0',size:'4.0MB',sha:'e90569e9620c5eeddb47484cab5fa482ee184e3712237f120a99264af7dc7744',steps:['ZIP 압축을 모두 풉니다.','WORKKIT_OddEven_Renamer.exe를 실행합니다.','폴더를 고르고 홀수·짝수를 선택합니다.']},
+ doc:{file:'/downloads/doc-pdf-converter-v1.zip',ver:'v1.0',size:'4.0MB',sha:'2e80c7ff2a1b307eebb4b36b1eab683b5d7fe33602ada63ea72ba043b87d158c'},
  yt:{file:'/downloads/youtube-downloader-v3.zip?v=3.5',ver:'v3.5',size:'5.5MB',sha:'db3b05e11807c5495b614853375ec74a1aabba6d0db40878a5fe8c99281f8ff9',steps:['ZIP 압축을 모두 풉니다.','WORKKIT_YouTube_Downloader.exe를 실행합니다.','링크와 화질은 프로그램에서 고릅니다.'],warn:'본인 소유이거나 허락받은 영상에만 사용하세요.'}
 };
 function dlTool(id){
@@ -474,6 +508,276 @@ function qrTool(){
  $('#svg').onclick=()=>svg&&save(new Blob([svg],{type:'image/svg+xml'}),'workkit-qr.svg');
  $('#png').onclick=()=>{if(!svg)return;const img=new Image(),u=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));img.onload=()=>{const c=document.createElement('canvas');c.width=c.height=1024;c.getContext('2d').drawImage(img,0,0,1024,1024);c.toBlob(b=>{if(b)save(b,'workkit-qr.png');URL.revokeObjectURL(u)},'image/png')};img.onerror=()=>{status(st,'PNG 저장 실패. SVG로 저장하세요.',true);URL.revokeObjectURL(u)};img.src=u};
  setMode('url');
+}
+
+/* ---------- PDF 도구 ---------- */
+const loaded={};
+function loadScript(src){return loaded[src]||(loaded[src]=new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>{delete loaded[src];no(new Error('모듈을 불러오지 못했습니다. 새로고침 후 다시 시도하세요.'))};document.head.appendChild(s)}))}
+async function libPdf(){await loadScript('/assets/pdf/pdf-lib.min.js');return PDFLib}
+async function libJs(){await loadScript('/assets/pdf/pdf.min.js');const j=window.pdfjsLib;j.GlobalWorkerOptions.workerSrc='/assets/pdf/pdf.worker.min.js';return j}
+async function openJs(bytes){const j=await libJs();return j.getDocument({data:bytes.slice(0),cMapUrl:'/assets/pdf/cmaps/',cMapPacked:true,standardFontDataUrl:'/assets/pdf/standard_fonts/',isEvalSupported:false}).promise}
+async function loadPdf(bytes,name){
+ const {PDFDocument}=await libPdf();
+ try{return await PDFDocument.load(bytes,{updateMetadata:false})}
+ catch(e){if(/encrypt/i.test(e.message||''))throw new Error(`${name}: 암호가 걸린 PDF는 처리할 수 없습니다.`);throw new Error(`${name}: 열 수 없는 PDF입니다.`)}
+}
+const isPdf=f=>f.type==='application/pdf'||/\.pdf$/i.test(f.name);
+const isImg=f=>/^image\/(jpeg|png|webp|gif|bmp)$/.test(f.type)||/\.(jpe?g|png|webp|gif|bmp)$/i.test(f.name);
+const baseName=n=>n.replace(/\.[^.]+$/,'')||'문서';
+const pdfBlob=bytes=>new Blob([bytes],{type:'application/pdf'});
+
+/* "1-3, 5, 8-" → [0,1,2,4,7,…] (0부터) */
+function parseRange(str,total){
+ const out=new Set();
+ for(const part of str.split(/[,\s]+/).filter(Boolean)){
+  const m=part.match(/^(\d*)\s*[-~]\s*(\d*)$/);
+  if(m&&(m[1]||m[2])){let a=m[1]?+m[1]:1,b=m[2]?+m[2]:total;if(a>b)[a,b]=[b,a];if(a<1||b>total)throw new Error(`${part}: 1~${total} 사이로 입력하세요.`);for(let i=a;i<=b;i++)out.add(i-1)}
+  else if(/^\d+$/.test(part)){const n=+part;if(n<1||n>total)throw new Error(`${part}: 1~${total} 사이로 입력하세요.`);out.add(n-1)}
+  else throw new Error(`'${part}'을(를) 이해하지 못했습니다. 예: 1-3, 5, 8-`);
+ }
+ return [...out].sort((a,b)=>a-b);
+}
+function rangeText(idx){
+ const r=[];for(let i=0;i<idx.length;i++){let j=i;while(j+1<idx.length&&idx[j+1]===idx[j]+1)j++;r.push(j>i?`${idx[i]+1}-${idx[j]+1}`:`${idx[i]+1}`);i=j}return r.join(', ');
+}
+
+/* 압축 없는 ZIP (한글 파일명 UTF-8) */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC[(c^b[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+async function makeZip(files){
+ const enc=new TextEncoder(),parts=[],central=[];let off=0;
+ const d=new Date(),dt=((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1)),dd=(((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate());
+ for(const f of files){
+  const data=f.data instanceof Uint8Array?f.data:new Uint8Array(await f.data.arrayBuffer()),name=enc.encode(f.name),crc=crc32(data);
+  const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x800,true);h.setUint16(10,dt,true);h.setUint16(12,dd,true);h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,name.length,true);
+  parts.push(h.buffer,name,data);
+  const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x800,true);c.setUint16(12,dt,true);c.setUint16(14,dd,true);c.setUint32(16,crc,true);c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);c.setUint16(28,name.length,true);c.setUint32(42,off,true);
+  central.push(c.buffer,name);off+=30+name.length+data.length;
+ }
+ const size=central.reduce((s,b)=>s+b.byteLength,0),e=new DataView(new ArrayBuffer(22));
+ e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,size,true);e.setUint32(16,off,true);
+ return new Blob([...parts,...central,e.buffer],{type:'application/zip'});
+}
+
+/* 이미지 → 캔버스 (사진 방향 반영, 너무 크면 축소) */
+async function imgCanvas(file,maxSide=4000){
+ let src;try{src=await createImageBitmap(file,{imageOrientation:'from-image'})}catch{src=await new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(file);i.onload=()=>{URL.revokeObjectURL(u);ok(i)};i.onerror=()=>{URL.revokeObjectURL(u);no(new Error(`${file.name}: 열 수 없는 이미지입니다.`))};i.src=u})}
+ const s=Math.min(1,maxSide/Math.max(src.width,src.height)),c=document.createElement('canvas');c.width=Math.round(src.width*s);c.height=Math.round(src.height*s);
+ const x=c.getContext('2d');x.drawImage(src,0,0,c.width,c.height);src.close?.();return c;
+}
+const toBlob=(c,t,q)=>new Promise((ok,no)=>c.toBlob(b=>b?ok(b):no(new Error('이미지를 만들지 못했습니다. 해상도를 낮춰보세요.')),t,q));
+function hasAlpha(c){const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;for(let i=3;i<d.length;i+=16)if(d[i]<255)return true;return false}
+async function embedImage(doc,file){
+ const c=await imgCanvas(file);
+ if(/png|gif|webp|bmp/.test(file.type)&&hasAlpha(c)){const b=await toBlob(c,'image/png');return{img:await doc.embedPng(new Uint8Array(await b.arrayBuffer())),w:c.width,h:c.height}}
+ const b=await toBlob(c,'image/jpeg',.92);return{img:await doc.embedJpg(new Uint8Array(await b.arrayBuffer())),w:c.width,h:c.height};
+}
+const MM=72/25.4,A4=[595.28,841.89];
+function placeImage(doc,{img,w,h},size,margin){
+ let pw,ph;
+ if(size==='orig'){pw=w*.75;ph=h*.75;const page=doc.addPage([pw,ph]);page.drawImage(img,{x:0,y:0,width:pw,height:ph});return}
+ [pw,ph]=w>h?[A4[1],A4[0]]:A4;
+ const m=margin*MM,s=Math.min((pw-m*2)/w,(ph-m*2)/h),dw=w*s,dh=h*s;
+ doc.addPage([pw,ph]).drawImage(img,{x:(pw-dw)/2,y:(ph-dh)/2,width:dw,height:dh});
+}
+
+/* 파일 목록 (순서 바꾸기·삭제·끌어서 정렬) */
+function fileList(ul,items,onChange){
+ let dragFrom=-1;
+ function render(){
+  ul.innerHTML=items.map((it,i)=>`<li draggable="true" data-i="${i}"><span class="grip" title="끌어서 순서 바꾸기">${icon('grip')}</span><span class="num">${i+1}</span>${it.thumb?`<img src="${it.thumb}" alt="">`:''}<span class="meta"><b>${esc(it.file.name)}</b>${esc(it.info||fmtSize(it.file.size))}</span><button class="icon-btn" data-a="up" aria-label="위로" ${i?'':'disabled'}>${icon('arrow-up')}</button><button class="icon-btn" data-a="down" aria-label="아래로" ${i<items.length-1?'':'disabled'}>${icon('arrow-down')}</button><button class="icon-btn" data-a="del" aria-label="빼기">${icon('x')}</button></li>`).join('');
+  onChange();
+ }
+ ul.onclick=e=>{const b=e.target.closest('button');if(!b)return;const i=+b.closest('li').dataset.i;
+  if(b.dataset.a==='up')[items[i-1],items[i]]=[items[i],items[i-1]];
+  else if(b.dataset.a==='down')[items[i+1],items[i]]=[items[i],items[i+1]];
+  else{const [x]=items.splice(i,1);if(x.thumb)URL.revokeObjectURL(x.thumb)}
+  render()};
+ ul.ondragstart=e=>{const li=e.target.closest('li');if(!li)return;dragFrom=+li.dataset.i;li.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','')};
+ ul.ondragover=e=>{if(dragFrom<0)return;e.preventDefault();e.stopPropagation();ul.querySelectorAll('.drop-before').forEach(x=>x.classList.remove('drop-before'));const li=e.target.closest('li');if(li)li.classList.add('drop-before')};
+ ul.ondrop=e=>{if(dragFrom<0)return;e.preventDefault();e.stopPropagation();const li=e.target.closest('li');let to=li?+li.dataset.i:items.length;const [x]=items.splice(dragFrom,1);if(to>dragFrom)to--;items.splice(to,0,x);dragFrom=-1;render()};
+ ul.ondragend=()=>{dragFrom=-1;render()};
+ return render;
+}
+/* 여러 파일 선택 영역 */
+function multiDrop(el,input,onFiles){
+ input.multiple=true;input.onchange=()=>{onFiles([...input.files]);input.value=''};
+ ['dragenter','dragover'].forEach(t=>el.addEventListener(t,e=>{e.preventDefault();el.classList.add('over')}));
+ ['dragleave','drop'].forEach(t=>el.addEventListener(t,e=>{e.preventDefault();el.classList.remove('over')}));
+ el.addEventListener('drop',e=>onFiles([...e.dataTransfer.files]));
+}
+function progress(wrap){const bar=$('i',wrap);return{set(v){wrap.hidden=false;bar.style.width=Math.round(v*100)+'%'},done(){wrap.hidden=true;bar.style.width='0'}}}
+
+const PDF_TABS=[['merge','합치기'],['pages','페이지 떼어내기'],['img2pdf','이미지 → PDF'],['pdf2img','PDF → 이미지'],['office','한글·워드 ↔ PDF']];
+let pdfTab='merge';
+function pdfTool(){
+ body.innerHTML=`<div class="stack"><div class="seg" role="tablist" aria-label="PDF 기능">${PDF_TABS.map(([k,v])=>`<button data-tab="${k}" aria-pressed="${k===pdfTab}">${v}</button>`).join('')}</div><div id="pdf-pane" class="stack"></div></div>`;
+ body.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{if(pdfBusy)return;pdfTab=b.dataset.tab;body.querySelectorAll('[data-tab]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));showPane()});
+ showPane();
+}
+let pdfBusy=false;
+async function busy(btn,st,fn){
+ if(pdfBusy)return;pdfBusy=true;const all=[...body.querySelectorAll('button')];all.forEach(b=>b.dataset.wasDisabled=b.disabled);all.forEach(b=>b.disabled=true);status(st,'처리 중…');
+ try{await fn()}catch(e){console.error(e);status(st,e.message||'처리하지 못했습니다.',true)}
+ finally{pdfBusy=false;all.forEach(b=>{if(document.body.contains(b))b.disabled=b.dataset.wasDisabled==='true'})}
+}
+function showPane(){
+ const pane=$('#pdf-pane');
+ const local='파일은 서버로 전송되지 않고 이 브라우저 안에서만 처리됩니다.';
+ ({merge:paneMerge,pages:panePages,img2pdf:paneImg2Pdf,pdf2img:panePdf2Img,office:paneOffice})[pdfTab](pane);
+ paint(pane);
+ setNote(pdfTab==='office'?'':local);
+}
+
+/* --- 합치기 --- */
+function paneMerge(pane){
+ pane.innerHTML=`${dropHTML('m-file','application/pdf,.pdf,image/*','PDF·이미지 여러 개 선택 또는 끌어놓기','순서는 아래 목록에서 바꿀 수 있습니다')}
+ <ul class="flist" id="m-list"></ul>
+ <div class="row"><button class="btn primary" id="m-go" disabled>${icon('download')} 하나의 PDF로 합치기</button><button class="btn sm" id="m-clear" hidden>목록 비우기</button></div>
+ <div class="prog" id="m-prog" hidden><i></i></div><p class="status" id="m-st" role="status"></p>`;
+ const items=[],st=$('#m-st'),go=$('#m-go'),pg=progress($('#m-prog'));
+ const render=fileList($('#m-list'),items,()=>{go.disabled=items.length<2;$('#m-clear').hidden=!items.length;const n=items.reduce((s,i)=>s+(i.pages||0),0);status(st,items.length?`${items.length}개 파일${n?` · 총 ${n}쪽`:''}${items.length<2?' — 2개 이상 넣어주세요.':''}`:'')});
+ multiDrop($('#m-file-drop'),$('#m-file'),async fs=>{
+  const bad=fs.filter(f=>!isPdf(f)&&!isImg(f));
+  for(const f of fs.filter(f=>isPdf(f)||isImg(f))){
+   const it={file:f};
+   if(isPdf(f)){try{const d=await loadPdf(new Uint8Array(await f.arrayBuffer()),f.name);it.pages=d.getPageCount();it.info=`${it.pages}쪽 · ${fmtSize(f.size)}`}catch(e){status(st,e.message,true);continue}}
+   else{it.thumb=URL.createObjectURL(f);it.pages=1;it.info=`이미지 · ${fmtSize(f.size)}`}
+   items.push(it);
+  }
+  render();if(bad.length)status(st,`PDF·이미지가 아닌 파일 ${bad.length}개는 뺐습니다.`,true);
+ });
+ $('#m-clear').onclick=()=>{items.forEach(i=>i.thumb&&URL.revokeObjectURL(i.thumb));items.length=0;render()};
+ go.onclick=()=>busy(go,st,async()=>{
+  const {PDFDocument}=await libPdf(),out=await PDFDocument.create();
+  for(let i=0;i<items.length;i++){
+   const f=items[i].file;status(st,`${i+1}/${items.length} · ${f.name}`);pg.set(i/items.length);
+   if(isPdf(f)){const src=await loadPdf(new Uint8Array(await f.arrayBuffer()),f.name);(await out.copyPages(src,src.getPageIndices())).forEach(p=>out.addPage(p))}
+   else placeImage(out,await embedImage(out,f),'a4',10);
+  }
+  pg.set(1);const bytes=await out.save();save(pdfBlob(bytes),`${baseName(items[0].file.name)}_합본.pdf`);pg.done();
+  status(st,`완료! ${out.getPageCount()}쪽 · ${fmtSize(bytes.length)} PDF를 저장했습니다.`);
+ });
+}
+
+/* --- 페이지 떼어내기 --- */
+function panePages(pane){
+ pane.innerHTML=`${dropHTML('p-file','application/pdf,.pdf','PDF 선택 또는 끌어놓기','페이지를 눌러 고르거나 범위를 입력하세요')}
+ <div id="p-work" hidden class="stack">
+  <p class="status" id="p-name" style="color:var(--text);font-weight:700"></p>
+  <label class="field"><span>페이지 선택 <small style="color:var(--sub);font-weight:400">· 예: 1-3, 5, 8-</small></span><input class="input" id="p-range" placeholder="아래 미리보기를 눌러도 됩니다" autocomplete="off"></label>
+  <div class="row"><button class="btn sm" id="p-all">전체 선택</button><button class="btn sm" id="p-none">선택 해제</button><button class="btn sm" id="p-odd">홀수쪽</button><button class="btn sm" id="p-even">짝수쪽</button><button class="btn sm" id="p-rot">${icon('rotate-cw')} 선택 페이지 회전</button></div>
+  <div class="thumbs" id="p-thumbs"></div>
+  <div class="row"><button class="btn primary" id="p-keep" disabled>${icon('download')} 선택한 페이지만 저장</button><button class="btn" id="p-del" disabled>선택한 페이지 빼고 저장</button><button class="btn" id="p-split">한 쪽씩 나누기 (ZIP)</button></div>
+ </div>
+ <div class="prog" id="p-prog" hidden><i></i></div><p class="status" id="p-st" role="status"></p>`;
+ const st=$('#p-st'),range=$('#p-range'),thumbs=$('#p-thumbs'),pg=progress($('#p-prog'));
+ let file=null,bytes=null,total=0,sel=new Set(),rot=[],jsDoc=null,obs=null;
+ function sync(fromInput){
+  if(!fromInput)range.value=rangeText([...sel].sort((a,b)=>a-b));
+  thumbs.querySelectorAll('.thumb').forEach(t=>{const i=+t.dataset.i;t.setAttribute('aria-pressed',String(sel.has(i)));$('.rot',t).hidden=!rot[i];$('.rot',t).textContent=rot[i]+'°'});
+  $('#p-keep').disabled=$('#p-del').disabled=!sel.size||pdfBusy;$('#p-del').disabled=$('#p-del').disabled||sel.size===total;$('#p-rot').disabled=!sel.size||pdfBusy;
+  if(!pdfBusy)status(st,sel.size?`${total}쪽 중 ${sel.size}쪽 선택`:`총 ${total}쪽 · 페이지를 골라주세요`);
+ }
+ range.oninput=()=>{try{sel=new Set(parseRange(range.value,total));sync(true)}catch(e){status(st,e.message,true)}};
+ const pick=f=>{sel=new Set([...Array(total).keys()].filter(f));sync()};
+ $('#p-all').onclick=()=>pick(()=>true);$('#p-none').onclick=()=>pick(()=>false);$('#p-odd').onclick=()=>pick(i=>i%2===0);$('#p-even').onclick=()=>pick(i=>i%2===1);
+ $('#p-rot').onclick=()=>{sel.forEach(i=>rot[i]=(rot[i]+90)%360);thumbs.querySelectorAll('.thumb').forEach(t=>{const c=$('canvas',t);if(c)c.style.transform=rotCss(rot[+t.dataset.i],c)});sync()};
+ thumbs.onclick=e=>{const t=e.target.closest('.thumb');if(!t)return;const i=+t.dataset.i;sel.has(i)?sel.delete(i):sel.add(i);sync()};
+ const rotCss=(r,c)=>r%180?`rotate(${r}deg) scale(${Math.min(c.width/c.height,c.height/c.width).toFixed(3)})`:`rotate(${r}deg)`;
+ async function renderThumb(t){
+  const i=+t.dataset.i;if(t.dataset.done)return;t.dataset.done=1;
+  try{const p=await jsDoc.getPage(i+1),v=p.getViewport({scale:1}),s=Math.min(180/v.width,250/v.height),vp=p.getViewport({scale:s*(devicePixelRatio>1?1.5:1)}),c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;await p.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;c.style.transform=rotCss(rot[i],c);$('.pg',t).appendChild(c)}catch{}
+ }
+ multiDrop($('#p-file-drop'),$('#p-file'),async fs=>{
+  const f=fs.find(isPdf);if(!f)return status(st,'PDF 파일을 선택하세요.',true);
+  status(st,'불러오는 중…');
+  try{const b=new Uint8Array(await f.arrayBuffer()),d=await loadPdf(b,f.name);file=f;bytes=b;total=d.getPageCount();rot=d.getPages().map(()=>0);sel=new Set()}catch(e){return status(st,e.message,true)}
+  $('#p-work').hidden=false;$('#p-name').textContent=`${f.name} · ${total}쪽 · ${fmtSize(f.size)}`;
+  thumbs.innerHTML=[...Array(total).keys()].map(i=>`<button class="thumb" data-i="${i}" aria-pressed="false" aria-label="${i+1}쪽"><span class="rot" hidden></span><span class="pg"></span>${i+1}</button>`).join('');
+  sync();obs?.disconnect();
+  try{jsDoc?.destroy();jsDoc=await openJs(bytes);obs=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting&&renderThumb(e.target)),{root:thumbs,rootMargin:'200px'});thumbs.querySelectorAll('.thumb').forEach(t=>obs.observe(t))}catch{status(st,'미리보기를 만들지 못했지만 페이지 번호로 작업할 수 있습니다.')}
+ });
+ async function build(idx){
+  const {PDFDocument,degrees}=await libPdf(),src=await loadPdf(bytes,file.name),out=await PDFDocument.create();
+  const pages=await out.copyPages(src,idx);pages.forEach((p,k)=>{const r=rot[idx[k]];if(r)p.setRotation(degrees((p.getRotation().angle+r)%360));out.addPage(p)});
+  return out.save();
+ }
+ const sorted=()=>[...sel].sort((a,b)=>a-b);
+ $('#p-keep').onclick=()=>busy(null,st,async()=>{const idx=sorted(),b=await build(idx);save(pdfBlob(b),`${baseName(file.name)}_p${rangeText(idx).replace(/, /g,'_')}.pdf`);status(st,`완료! ${idx.length}쪽짜리 PDF를 저장했습니다.`)});
+ $('#p-del').onclick=()=>busy(null,st,async()=>{const idx=[...Array(total).keys()].filter(i=>!sel.has(i)),b=await build(idx);save(pdfBlob(b),`${baseName(file.name)}_편집.pdf`);status(st,`완료! ${sel.size}쪽을 빼고 ${idx.length}쪽 PDF를 저장했습니다.`)});
+ $('#p-split').onclick=()=>busy(null,st,async()=>{
+  const idx=sel.size?sorted():[...Array(total).keys()],files=[],w=String(total).length;
+  for(let k=0;k<idx.length;k++){pg.set(k/idx.length);status(st,`${k+1}/${idx.length}쪽 나누는 중…`);files.push({name:`${baseName(file.name)}_${String(idx[k]+1).padStart(w,'0')}.pdf`,data:await build([idx[k]])})}
+  pg.set(1);save(await makeZip(files),`${baseName(file.name)}_낱장.zip`);pg.done();status(st,`완료! ${files.length}개 PDF를 ZIP으로 저장했습니다.${sel.size?' (선택한 페이지만)':''}`);
+ });
+}
+
+/* --- 이미지 → PDF --- */
+function paneImg2Pdf(pane){
+ pane.innerHTML=`${dropHTML('i-file','image/jpeg,image/png,image/webp,image/gif,image/bmp','이미지 여러 장 선택 또는 끌어놓기','JPG · PNG · WEBP · GIF · BMP — 한 장이 한 페이지가 됩니다')}
+ <ul class="flist" id="i-list"></ul>
+ <div class="opts"><label for="i-size">용지</label><select id="i-size"><option value="a4">A4 (가로·세로 자동)</option><option value="orig">이미지 크기 그대로</option></select><label for="i-margin">여백</label><select id="i-margin"><option value="0">없음</option><option value="10" selected>보통 (10mm)</option><option value="20">넓게 (20mm)</option></select></div>
+ <div class="row"><button class="btn primary" id="i-go" disabled>${icon('download')} PDF로 만들기</button><button class="btn sm" id="i-clear" hidden>목록 비우기</button></div>
+ <div class="prog" id="i-prog" hidden><i></i></div><p class="status" id="i-st" role="status"></p>`;
+ const items=[],st=$('#i-st'),go=$('#i-go'),pg=progress($('#i-prog'));
+ $('#i-size').onchange=()=>{$('#i-margin').disabled=$('#i-size').value==='orig'};
+ const render=fileList($('#i-list'),items,()=>{go.disabled=!items.length;$('#i-clear').hidden=!items.length;status(st,items.length?`이미지 ${items.length}장 → ${items.length}쪽`:'')});
+ multiDrop($('#i-file-drop'),$('#i-file'),fs=>{const ok=fs.filter(isImg);ok.forEach(f=>items.push({file:f,thumb:URL.createObjectURL(f)}));render();if(ok.length<fs.length)status(st,`이미지가 아닌 파일 ${fs.length-ok.length}개는 뺐습니다. (HEIC는 HEIC 변환기로 먼저 바꿔주세요)`,true)});
+ $('#i-clear').onclick=()=>{items.forEach(i=>URL.revokeObjectURL(i.thumb));items.length=0;render()};
+ go.onclick=()=>busy(go,st,async()=>{
+  const {PDFDocument}=await libPdf(),out=await PDFDocument.create(),size=$('#i-size').value,m=+$('#i-margin').value;
+  for(let i=0;i<items.length;i++){status(st,`${i+1}/${items.length}장 넣는 중…`);pg.set(i/items.length);placeImage(out,await embedImage(out,items[i].file),size,m)}
+  pg.set(1);const b=await out.save();save(pdfBlob(b),`${baseName(items[0].file.name)}${items.length>1?'_외'+(items.length-1)+'장':''}.pdf`);pg.done();
+  status(st,`완료! ${items.length}쪽 · ${fmtSize(b.length)} PDF를 저장했습니다.`);
+ });
+}
+
+/* --- PDF → 이미지 --- */
+function panePdf2Img(pane){
+ pane.innerHTML=`${dropHTML('x-file','application/pdf,.pdf','PDF 선택 또는 끌어놓기','페이지마다 이미지 한 장으로 저장합니다')}
+ <div id="x-work" hidden class="stack">
+  <p class="status" id="x-name" style="color:var(--text);font-weight:700"></p>
+  <div class="opts"><label for="x-fmt">형식</label><select id="x-fmt"><option value="png">PNG (선명, 용량 큼)</option><option value="jpg">JPG (용량 작음)</option></select><label for="x-dpi">화질</label><select id="x-dpi"><option value="96">보통 (96dpi)</option><option value="150" selected>고화질 (150dpi)</option><option value="300">인쇄용 (300dpi)</option></select><label for="x-range">페이지</label><input class="input" id="x-range" placeholder="비우면 전체 · 예: 1-3, 5"></div>
+  <button class="btn primary" id="x-go">${icon('download')} 이미지로 저장</button>
+ </div>
+ <div class="prog" id="x-prog" hidden><i></i></div><p class="status" id="x-st" role="status"></p>`;
+ const st=$('#x-st'),pg=progress($('#x-prog'));let file=null,doc=null;
+ multiDrop($('#x-file-drop'),$('#x-file'),async fs=>{
+  const f=fs.find(isPdf);if(!f)return status(st,'PDF 파일을 선택하세요.',true);
+  status(st,'불러오는 중…');
+  try{doc?.destroy();doc=await openJs(new Uint8Array(await f.arrayBuffer()));file=f}catch(e){return status(st,e.name==='PasswordException'?'암호가 걸린 PDF는 처리할 수 없습니다.':'열 수 없는 PDF입니다.',true)}
+  $('#x-work').hidden=false;$('#x-name').textContent=`${f.name} · ${doc.numPages}쪽`;status(st,'');
+ });
+ $('#x-go').onclick=()=>busy(null,st,async()=>{
+  const idx=$('#x-range').value.trim()?parseRange($('#x-range').value,doc.numPages):[...Array(doc.numPages).keys()];
+  const jpg=$('#x-fmt').value==='jpg',dpi=+$('#x-dpi').value,files=[],w=String(doc.numPages).length;
+  for(let k=0;k<idx.length;k++){
+   status(st,`${k+1}/${idx.length}쪽 변환 중…`);pg.set(k/idx.length);
+   const p=await doc.getPage(idx[k]+1),v1=p.getViewport({scale:1});let s=dpi/72;const max=Math.sqrt(36e6/(v1.width*v1.height));if(s>max)s=max;
+   const vp=p.getViewport({scale:s}),c=document.createElement('canvas');c.width=Math.floor(vp.width);c.height=Math.floor(vp.height);
+   const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);await p.render({canvasContext:x,viewport:vp}).promise;
+   files.push({name:`${baseName(file.name)}_${String(idx[k]+1).padStart(w,'0')}.${jpg?'jpg':'png'}`,data:await toBlob(c,jpg?'image/jpeg':'image/png',.92)});
+   c.width=c.height=0;p.cleanup();
+  }
+  pg.set(1);
+  if(files.length===1)save(files[0].data,files[0].name);else save(await makeZip(files),`${baseName(file.name)}_이미지.zip`);
+  pg.done();status(st,`완료! ${files.length}장을 ${files.length>1?'ZIP으로 ':''}저장했습니다.`);
+ });
+}
+
+/* --- 한글·워드 ↔ PDF (Windows 프로그램) --- */
+function paneOffice(pane){
+ const d=DL.doc;
+ pane.innerHTML=`<p class="hint">한글(HWP)·워드 파일은 브라우저에서 서식 그대로 바꿀 수 없어서, <b>내 PC에 설치된 한글·워드를 이용해 변환하는 Windows 프로그램</b>으로 제공합니다. 파일은 PC 밖으로 나가지 않습니다.</p>
+ <div class="win-card stack">
+  <div class="conv"><span>한글 (HWP·HWPX)</span><span>→</span><span>PDF</span><span>워드 (DOCX·DOC·RTF)</span><span>→</span><span>PDF</span><span>PDF</span><span>→</span><span>워드 (DOCX)</span><span>PDF</span><span>→</span><span>한글 (HWP)</span></div>
+  <ol class="steps"><li>ZIP 압축을 모두 풉니다.</li><li>WORKKIT_Doc_PDF_Converter.exe를 실행합니다.</li><li>파일을 창에 끌어놓고 변환 방식을 고른 뒤 <b>변환 시작</b>을 누릅니다.</li></ol>
+  <a class="btn primary" href="${d.file}" download>${icon('download')} 다운로드 · ${d.size}</a>
+  <dl class="dl-meta"><dt>버전</dt><dd>${d.ver} · Windows</dd><dt>필요</dt><dd>한글 변환: 한컴오피스 한글 · 워드 변환: Microsoft Word<br>PDF → 한글: 워드와 한글 둘 다</dd><dt>SHA-256</dt><dd class="mono">${d.sha}</dd></dl>
+ </div>
+ <p class="hint">처음 한글로 변환할 때 <b>“접근 허용”</b> 보안 창이 뜨면 <b>모두 허용</b>을 누르세요. Windows 보호 창이 뜨면 <b>추가 정보 → 실행</b>을 누르세요.</p>
+ <p class="hint">PDF → 워드·한글은 글자와 표를 최대한 살려 옮기지만, 복잡한 디자인이나 스캔한 PDF는 모양이 달라질 수 있습니다.</p>`;
 }
 
 /* ---------- 시작 ---------- */

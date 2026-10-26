@@ -42,37 +42,70 @@ main{max-width:1296px;margin:0 auto;padding:36px 28px 48px}
 h1{font-size:38px;line-height:1.3;font-weight:900;letter-spacing:-1.5px;margin:10px 0}
 .lead{color:var(--sub);margin:0 0 28px;font-weight:500}
 
-.workspace{display:grid;grid-template-columns:340px minmax(0,1fr);gap:28px;align-items:start}
-.filters{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px}
+/* ---- 손전등(스포트라이트) 배경 ---- */
+.spot,.dots{position:fixed;inset:0;pointer-events:none;z-index:0}
+.spot{background:radial-gradient(560px circle at var(--mx,50%) var(--my,35%),rgba(9,235,193,.075),transparent 62%)}
+.dots{background-image:radial-gradient(rgba(255,255,255,.11) 1px,transparent 1.3px);background-size:22px 22px;
+ -webkit-mask-image:radial-gradient(340px circle at var(--mx,50%) var(--my,35%),#000,transparent 72%);mask-image:radial-gradient(340px circle at var(--mx,50%) var(--my,35%),#000,transparent 72%)}
+.top,main{position:relative;z-index:1}
+.top{background:rgba(32,32,32,.86);backdrop-filter:blur(8px)}
+
+/* ---- 런처 ---- */
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:26px}
+.filters{display:flex;gap:4px;flex-wrap:wrap}
 .filter{border:1px solid transparent;border-radius:8px;padding:8px 14px;background:none;color:var(--sub);font-weight:700}
 .filter[aria-pressed=true]{background:var(--bg);color:var(--text);border-color:var(--accent);font-weight:800}
-.search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:14px;color:var(--sub)}
+.search{display:flex;align-items:center;gap:8px;width:260px;background:rgba(32,32,32,.8);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--sub)}
 .search:focus-within{border-color:var(--accent)}
 .search input{flex:1;min-width:0;border:0;outline:0;background:none}
 .search input::placeholder{color:var(--sub)}
-.grid{display:grid;gap:10px}
-.tool{display:flex;flex-direction:column;text-align:left;padding:18px;border:1px solid var(--line);border-left:3px solid var(--line);border-radius:12px;background:var(--surface);transition:border-color .15s,transform .15s}
-.tool:hover{border-color:var(--accent);transform:translateY(-1px)}
-.tool[aria-pressed=true]{border-color:var(--accent);background:var(--accent-bg)}
-.tool-top{display:flex;justify-content:space-between;align-items:center}
-.tool-icon{width:34px;height:34px;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center;color:var(--accent);font-size:19px}
-.tool-cat{font-size:11px;color:var(--sub)}
-.tool h3{font-size:19px;font-weight:800;letter-spacing:-.4px;margin:12px 0 4px}
-.tool p{color:var(--sub);font-size:13px;margin:0 0 14px;font-weight:500}
-.tool-foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:12px;font-size:11px;color:var(--sub)}
-.tool-open{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:var(--text)}
-.tool-open .ic{color:var(--accent);font-size:15px}
-.no-result{color:var(--sub);text-align:center;padding:28px 0}
+.dock-wrap{position:relative;min-height:280px}
+.dock{display:grid;grid-template-columns:repeat(auto-fill,92px);gap:26px 24px;padding:10px 4px 48px}
+.cell{display:flex;flex-direction:column;align-items:center;gap:10px}
+.tile{position:relative;width:92px;height:92px;border-radius:26px;border:1px solid var(--line);background:linear-gradient(180deg,#242424,#1a1a1a);
+ display:grid;place-items:center;color:var(--accent);font-size:36px;transition:transform .24s cubic-bezier(.2,.9,.25,1.2),border-color .2s,box-shadow .25s,background .2s}
+.tile::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;pointer-events:none;
+ background:radial-gradient(110px circle at var(--x,-200px) var(--y,-200px),rgba(9,235,193,.6),transparent 65%);
+ -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.tile .ic{transition:transform .24s cubic-bezier(.2,.9,.25,1.2)}
+.tile:hover,.tile:focus-visible{transform:scale(1.14);border-color:var(--accent);outline:none;z-index:2;background:linear-gradient(180deg,#26302d,#1b1f1e);
+ box-shadow:0 0 0 1px var(--accent),0 0 28px -4px rgba(9,235,193,.45),0 14px 30px -10px rgba(0,0,0,.7)}
+.tile:hover .ic,.tile:focus-visible .ic{transform:scale(1.06)}
+.tile:active{transform:scale(1.06)}
+.tile-label{font-size:12px;color:var(--sub);text-align:center;max-width:92px;line-height:1.35;word-break:keep-all;display:none}
+.on-touch{display:none}
+.no-result{color:var(--sub);padding:40px 0}
 
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px;min-height:560px;scroll-margin-top:16px}
-.panel-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:18px;margin-bottom:22px;border-bottom:1px solid var(--line)}
-.panel-title{font-size:23px;font-weight:800;letter-spacing:-.5px}
-.ghost{background:none;border:1px solid var(--line);border-radius:7px;padding:6px 12px;color:var(--sub)}
-.empty{min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--sub)}
-.empty .ic{font-size:32px;color:var(--accent)}
-.empty h3{color:var(--text);margin:18px 0 4px;font-size:21px}
-.empty p{margin:0}
-.note{font-size:12px;color:var(--sub);margin-top:20px;padding-top:14px;border-top:1px solid var(--line)}
+/* 설명창 */
+.pop{position:absolute;z-index:5;width:300px;padding:18px 18px 16px;border:1px solid var(--line2);border-radius:16px;background:rgba(30,30,30,.94);backdrop-filter:blur(12px);
+ box-shadow:0 24px 60px -16px rgba(0,0,0,.75),0 0 0 1px rgba(9,235,193,.08);pointer-events:none;opacity:0;transform:scale(.92);transition:opacity .16s ease,transform .2s cubic-bezier(.2,.9,.25,1.2)}
+.pop.show{opacity:1;transform:none}
+.pop-top{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--sub)}
+.pop-top b{color:var(--accent);font-weight:700;letter-spacing:.5px}
+.pop h3{font-size:19px;font-weight:800;letter-spacing:-.4px;margin:8px 0 4px}
+.pop p{color:var(--sub);font-size:13px;margin:0 0 14px}
+.pop-foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:11px;font-size:11px;color:var(--sub)}
+.pop-foot span:last-child{display:flex;align-items:center;gap:6px;color:var(--text);font-weight:800;font-size:12px}
+.pop-foot .ic{color:var(--accent)}
+
+/* ---- 도구 화면 ---- */
+.tool-view{background:rgba(32,32,32,.92);border:1px solid var(--line);border-radius:22px;padding:26px 30px 30px;min-height:560px}
+.tv-top{display:flex;align-items:center;gap:14px;padding-bottom:20px;margin-bottom:24px;border-bottom:1px solid var(--line)}
+.back{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid var(--line);border-radius:9px;padding:8px 12px;color:var(--sub);font-weight:700;margin-right:6px}
+.back:hover{color:var(--text);border-color:var(--line2)}
+.tv-icon{width:46px;height:46px;border-radius:14px;border:1px solid var(--accent);display:grid;place-items:center;color:var(--accent);font-size:23px;background:#1a1f1e}
+.tv-title{font-size:23px;font-weight:800;letter-spacing:-.5px;display:block;line-height:1.2}
+.tv-cat{font-size:12px;color:var(--sub)}
+.tv-body{max-width:760px}
+.note{font-size:12px;color:var(--sub);margin-top:22px;padding-top:14px;border-top:1px solid var(--line);max-width:760px}
+
+/* 전환 애니메이션 (타일 → 도구 화면) */
+::view-transition-group(*){animation-duration:.46s;animation-timing-function:cubic-bezier(.2,.85,.2,1)}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.22s}
+::view-transition-old(card),::view-transition-new(card){height:100%;object-fit:none;object-position:top left}
+@keyframes rise{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+.rise{animation:rise .32s cubic-bezier(.2,.85,.2,1)}
+@media(prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}.rise{animation:none}.tile,.pop{transition:none}}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border:1px solid var(--accent);border-radius:8px;background:var(--bg);color:var(--text);font-weight:700;text-decoration:none}
 .btn:hover:not(:disabled){background:var(--accent-bg)}
@@ -134,25 +167,25 @@ footer{display:flex;justify-content:space-between;gap:12px;margin-top:28px;color
  main{padding:24px 16px 40px}
  h1{font-size:29px}
  .label{display:none}
- .workspace{grid-template-columns:1fr;gap:20px}
- .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
- .tool{padding:14px}.tool h3{font-size:16px}.tool p{display:none}
- .tool-foot{flex-wrap:wrap;gap:6px}
- .panel{padding:20px;min-height:0}
- .empty{min-height:200px}
- .panel-title{font-size:20px}
+ .search{width:100%}
+ .dock{grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:20px 12px}
+ .tile{width:72px;height:72px;border-radius:21px;font-size:29px}
+ .tool-view{padding:18px 18px 22px;min-height:0;border-radius:18px}
+ .tv-title{font-size:19px}
+ .back span{display:none}
 }
-@media(max-width:380px){.grid{grid-template-columns:1fr}}
+@media(hover:none){.on-hover{display:none}.on-touch{display:inline}.tile-label{display:block}.spot,.dots{display:none}.pop{display:none}}
 </style>
 </head>
 <body>
 <header class="top"><span class="logo"><i data-i="command"></i></span><span class="name">WORKKIT</span><span class="label">나의 작은 작업 도구함</span></header>
+<div class="spot" aria-hidden="true"></div><div class="dots" aria-hidden="true"></div>
 <main>
- <div class="eyebrow">YOUR EVERYDAY TOOLBOX</div>
- <h1>필요한 도구, 한곳에서.</h1>
- <p class="lead">웹에서 바로 쓰거나, 필요한 도구를 내려받으세요.</p>
- <div class="workspace">
-  <aside aria-label="도구 목록">
+ <section id="home">
+  <div class="eyebrow">YOUR EVERYDAY TOOLBOX</div>
+  <h1>필요한 도구, 한곳에서.</h1>
+  <p class="lead"><span class="on-hover">아이콘에 마우스를 올리면 설명이, 누르면 바로 도구가 열립니다.</span><span class="on-touch">아이콘을 누르면 바로 도구가 열립니다.</span></p>
+  <div class="toolbar">
    <div class="filters" role="group" aria-label="분류">
     <button class="filter" data-cat="전체" aria-pressed="true">전체</button>
     <button class="filter" data-cat="이미지" aria-pressed="false">이미지</button>
@@ -160,21 +193,18 @@ footer{display:flex;justify-content:space-between;gap:12px;margin-top:28px;color
     <button class="filter" data-cat="유틸리티" aria-pressed="false">유틸리티</button>
    </div>
    <label class="search"><i data-i="search"></i><input type="search" placeholder="도구 검색" aria-label="도구 검색"></label>
-   <div class="grid">
-    <button class="tool" data-id="heic" data-kind="이미지" data-tags="아이폰 사진 jpg png 변환 heic"><span class="tool-top"><span class="tool-icon"><i data-i="images"></i></span><span class="tool-cat">이미지</span></span><h3>HEIC 변환기</h3><p>아이폰 사진을 JPG·PNG로 한 번에 변환</p><span class="tool-foot"><span>WINDOWS · ZIP</span><span class="tool-open">열기 <i data-i="arrow-up-right"></i></span></span></button>
-    <button class="tool" data-id="hex" data-kind="이미지" data-tags="색상 컬러 rgb 스포이드 hex"><span class="tool-top"><span class="tool-icon"><i data-i="pipette"></i></span><span class="tool-cat">이미지</span></span><h3>HEX 코드 추출기</h3><p>사진 속 색을 클릭해 HEX·RGB 추출</p><span class="tool-foot"><span>HEX / RGB</span><span class="tool-open">열기 <i data-i="arrow-up-right"></i></span></span></button>
-    <button class="tool" data-id="yt" data-kind="영상" data-tags="youtube 영상 다운로드 mp4"><span class="tool-top"><span class="tool-icon"><i data-i="youtube"></i></span><span class="tool-cat">영상</span></span><h3>유튜브 다운로드</h3><p>Windows용 다운로드 프로그램</p><span class="tool-foot"><span>WINDOWS · ZIP</span><span class="tool-open">열기 <i data-i="arrow-up-right"></i></span></span></button>
-    <button class="tool" data-id="qr" data-kind="유틸리티" data-tags="qr 큐알 링크 텍스트 이미지 업로드"><span class="tool-top"><span class="tool-icon"><i data-i="qr-code"></i></span><span class="tool-cat">유틸리티</span></span><h3>QR 코드 제작툴</h3><p>링크·텍스트·이미지를 QR로</p><span class="tool-foot"><span>PNG / SVG</span><span class="tool-open">열기 <i data-i="arrow-up-right"></i></span></span></button>
-    <button class="tool" data-id="oe" data-kind="유틸리티" data-tags="파일 이름 번호 홀수 짝수 일괄 변경 rename"><span class="tool-top"><span class="tool-icon"><i data-i="list"></i></span><span class="tool-cat">유틸리티</span></span><h3>홀짝 번호 매기기</h3><p>폴더 속 파일에 01·03 / 02·04 번호를 한 번에</p><span class="tool-foot"><span>WINDOWS · ZIP</span><span class="tool-open">열기 <i data-i="arrow-up-right"></i></span></span></button>
-    <p class="no-result" hidden>검색 결과가 없습니다.</p>
-   </div>
-  </aside>
-  <section class="panel" aria-live="polite">
-   <div class="panel-top"><strong class="panel-title">도구 선택</strong><button class="ghost" id="close" hidden>닫기</button></div>
-   <div id="body"></div>
-   <p class="note" id="note" hidden></p>
-  </section>
- </div>
+  </div>
+  <div class="dock-wrap">
+   <div class="dock" role="list"></div>
+   <p class="no-result" hidden>검색 결과가 없습니다.</p>
+   <div class="pop" aria-hidden="true"></div>
+  </div>
+ </section>
+ <section class="tool-view" id="tool" hidden aria-live="polite">
+  <div class="tv-top"><button class="back" id="back" aria-label="도구 목록으로">←<span> 도구 목록</span></button><span class="tv-icon"></span><span><strong class="tv-title"></strong><span class="tv-cat"></span></span></div>
+  <div id="body" class="tv-body"></div>
+  <p class="note" id="note" hidden></p>
+ </section>
  <footer><span>WORKKIT · 자주 쓰는 도구를 가볍게</span><span>PERSONAL TOOLBOX</span></footer>
 </main>
 <script>
@@ -201,18 +231,90 @@ const $=(s,el=document)=>el.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 paint(document);
 
-const body=$('#body'),note=$('#note'),title=$('.panel-title'),closeBtn=$('#close'),panel=$('.panel');
-const cards=[...document.querySelectorAll('.tool')],search=$('.search input'),noResult=$('.no-result');
+const body=$('#body'),note=$('#note'),home=$('#home'),view=$('#tool'),dock=$('.dock'),pop=$('.pop'),search=$('.search input'),noResult=$('.no-result');
 let cat='전체';
 
-/* ---------- 목록 필터 ---------- */
+/* 도구 목록 — 새 도구는 여기에 한 줄 추가 */
+const TOOL_LIST=[
+ {id:'heic',name:'HEIC 변환기',kind:'이미지',icon:'images',desc:'아이폰 사진을 JPG·PNG로 한 번에 변환',foot:'WINDOWS · ZIP',tags:'아이폰 사진 jpg png 변환 heic',run:()=>dlTool('heic')},
+ {id:'hex',name:'HEX 코드 추출기',kind:'이미지',icon:'pipette',desc:'사진 속 색을 클릭해 HEX·RGB 추출',foot:'HEX / RGB',tags:'색상 컬러 rgb 스포이드 hex',run:()=>hexTool()},
+ {id:'yt',name:'유튜브 다운로드',kind:'영상',icon:'youtube',desc:'링크만 넣으면 편집용 MP4·MP3로 저장',foot:'WINDOWS · ZIP',tags:'youtube 영상 다운로드 mp4 mp3',run:()=>dlTool('yt')},
+ {id:'qr',name:'QR 코드 제작툴',kind:'유틸리티',icon:'qr-code',desc:'링크·텍스트·이미지를 QR로',foot:'PNG / SVG',tags:'qr 큐알 링크 텍스트 이미지 업로드',run:()=>qrTool()},
+ {id:'oe',name:'홀짝 번호 매기기',kind:'유틸리티',icon:'list',desc:'폴더 속 파일에 01·03 / 02·04 번호를 한 번에',foot:'WINDOWS · ZIP',tags:'파일 이름 번호 홀수 짝수 일괄 변경 rename',run:()=>dlTool('oe')}
+];
+dock.innerHTML=TOOL_LIST.map(t=>`<div class="cell" role="listitem" data-id="${t.id}"><button class="tile" data-id="${t.id}" aria-label="${esc(t.name)}">${icon(t.icon)}</button><span class="tile-label">${esc(t.name)}</span></div>`).join('');
+const cells=[...dock.querySelectorAll('.cell')],tiles=[...dock.querySelectorAll('.tile')];
+const byId=id=>TOOL_LIST.find(t=>t.id===id);
+
+/* ---------- 필터·검색 ---------- */
 function filter(){
  const q=search.value.trim().toLowerCase();let shown=0;
- cards.forEach(c=>{const hay=(c.textContent+' '+c.dataset.tags).toLowerCase();const ok=(cat==='전체'||c.dataset.kind===cat)&&(!q||hay.includes(q));c.hidden=!ok;if(ok)shown++});
- noResult.hidden=shown>0;
+ cells.forEach(c=>{const t=byId(c.dataset.id),hay=(t.name+' '+t.desc+' '+t.tags+' '+t.kind).toLowerCase();const ok=(cat==='전체'||t.kind===cat)&&(!q||hay.includes(q));c.hidden=!ok;if(ok)shown++});
+ noResult.hidden=shown>0;hidePop();
 }
 document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{cat=b.dataset.cat;document.querySelectorAll('.filter').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));filter()});
 search.oninput=filter;
+search.onkeydown=e=>{if(e.key==='Enter'){const f=tiles.find(t=>!t.closest('.cell').hidden);if(f)f.click()}};
+
+/* ---------- 손전등 + 타일 테두리 빛 ---------- */
+let raf=0,mx=0,my=0;
+addEventListener('pointermove',e=>{mx=e.clientX;my=e.clientY;if(!raf)raf=requestAnimationFrame(()=>{raf=0;
+ document.documentElement.style.setProperty('--mx',mx+'px');document.documentElement.style.setProperty('--my',my+'px');
+ if(!home.hidden)tiles.forEach(t=>{const r=t.getBoundingClientRect();t.style.setProperty('--x',(mx-r.left)+'px');t.style.setProperty('--y',(my-r.top)+'px')});
+})},{passive:true});
+
+/* ---------- 설명창 ---------- */
+let popFor=null;
+function showPop(tile){
+ const t=byId(tile.dataset.id);popFor=tile;
+ pop.innerHTML=`<div class="pop-top"><b>${esc(t.kind)}</b></div><h3>${esc(t.name)}</h3><p>${esc(t.desc)}</p><div class="pop-foot"><span>${esc(t.foot)}</span><span>열기 ${icon('arrow-up-right')}</span></div>`;
+ const wrap=pop.parentElement.getBoundingClientRect(),r=tile.getBoundingClientRect(),gap=18,pw=300,ph=pop.offsetHeight||150;
+ const left=Math.max(0,Math.min(wrap.width-pw,r.left-wrap.left+r.width/2-pw/2));
+ const below=r.bottom+gap+ph<innerHeight;
+ pop.style.left=left+'px';
+ pop.style.top=(below?r.bottom-wrap.top+gap:r.top-wrap.top-gap-ph)+'px';
+ pop.style.transformOrigin=(r.left-wrap.left+r.width/2-left)+'px '+(below?'0':'100%');
+ requestAnimationFrame(()=>pop.classList.add('show'));
+}
+function hidePop(){popFor=null;pop.classList.remove('show')}
+tiles.forEach(t=>{
+ t.addEventListener('mouseenter',()=>showPop(t));t.addEventListener('focus',()=>showPop(t));
+ t.addEventListener('mouseleave',()=>popFor===t&&hidePop());t.addEventListener('blur',()=>popFor===t&&hidePop());
+ t.addEventListener('click',()=>openTool(t.dataset.id,true));
+});
+
+/* ---------- 화면 전환 (타일이 도구 화면으로 커지는 애니메이션) ---------- */
+const canMorph=typeof document.startViewTransition==='function'&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
+function nameTile(id,on){const t=tiles.find(x=>x.dataset.id===id);if(t){t.style.viewTransitionName=on?'card':'';t.firstElementChild.style.viewTransitionName=on?'card-icon':''}}
+function nameView(on){view.style.viewTransitionName=on?'card':'';$('.tv-icon').style.viewTransitionName=on?'card-icon':''}
+function renderTool(t){
+ home.hidden=true;view.hidden=false;
+ $('.tv-icon').innerHTML=icon(t.icon);$('.tv-title').textContent=t.name;$('.tv-cat').textContent=t.kind+' · '+t.foot;
+ setNote('');t.run();scrollTo(0,0);
+}
+function renderHome(){view.hidden=true;home.hidden=false;body.innerHTML='';setNote('')}
+let current=null;
+function openTool(id,push){
+ const t=byId(id);if(!t)return;hidePop();
+ if(push)history.pushState({id},'','#'+id);
+ current=id;
+ if(!canMorph){renderTool(t);view.classList.remove('rise');void view.offsetWidth;view.classList.add('rise');return}
+ nameTile(id,true);
+ const vt=document.startViewTransition(()=>{nameTile(id,false);renderTool(t);nameView(true)});
+ vt.finished.finally(()=>nameView(false));
+}
+function goHome(push){
+ if(!current){renderHome();return}
+ const id=current;current=null;
+ if(push)history.pushState(null,'',location.pathname);
+ if(!canMorph){renderHome();return}
+ nameView(true);
+ const vt=document.startViewTransition(()=>{nameView(false);renderHome();nameTile(id,true)});
+ vt.finished.finally(()=>{nameTile(id,false);const t=tiles.find(x=>x.dataset.id===id);t&&t.focus({preventScroll:true})});
+}
+$('#back').onclick=()=>history.state&&history.state.id?history.back():goHome(true);
+addEventListener('keydown',e=>{if(e.key==='Escape'&&current)$('#back').click()});
+addEventListener('popstate',()=>{const id=location.hash.slice(1);byId(id)?openTool(id,false):goHome(false)});
 
 function setNote(t){note.textContent=t||'';note.hidden=!t}
 function save(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}
@@ -228,13 +330,6 @@ function dropzone(el,input,onFile){
  el.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)onFile(f)});
 }
 const dropHTML=(id,accept,label,sub)=>`<label class="drop" id="${id}-drop"><i data-i="upload"></i><strong>${label}</strong><small>${sub}</small><input id="${id}" class="sr" type="file" accept="${accept}"></label>`;
-
-/* ---------- 빈 화면 ---------- */
-function emptyView(){
- title.textContent='도구 선택';closeBtn.hidden=true;setNote('');
- body.innerHTML='<div class="empty"><i data-i="pointer"></i><h3>어떤 작업을 하시나요?</h3><p>도구를 선택하면 이곳에 표시됩니다.</p></div>';paint(body);
- cards.forEach(x=>x.setAttribute('aria-pressed','false'));
-}
 
 /* ---------- HEX 추출기 ---------- */
 function hexTool(){
@@ -381,17 +476,9 @@ function qrTool(){
  setMode('url');
 }
 
-/* ---------- 카드 선택 ---------- */
-const TOOLS={heic:()=>dlTool('heic'),yt:()=>dlTool('yt'),oe:()=>dlTool('oe'),hex:hexTool,qr:qrTool};
-cards.forEach(c=>c.onclick=()=>{
- cards.forEach(x=>x.setAttribute('aria-pressed',String(x===c)));
- title.textContent=$('h3',c).textContent;closeBtn.hidden=false;setNote('');TOOLS[c.dataset.id]();
- history.replaceState(null,'','#'+c.dataset.id);
- if(innerWidth<760)panel.scrollIntoView({behavior:'smooth',block:'start'});
-});
-closeBtn.onclick=()=>{emptyView();history.replaceState(null,'',location.pathname)};
-const start=cards.find(c=>c.dataset.id===location.hash.slice(1));
-start?start.click():emptyView();
+/* ---------- 시작 ---------- */
+const startId=location.hash.slice(1);
+if(byId(startId)){current=startId;renderTool(byId(startId))}
 })();
 </script>
 </body>

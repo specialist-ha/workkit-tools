@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WORKKIT · 나의 작업 도구함</title>
-<meta name="description" content="HEIC 변환, HEX 색상 추출, QR 코드 제작, 유튜브 다운로더를 한곳에서.">
+<meta name="description" content="HEIC 변환, HEX 색상 추출, QR 코드 제작, 유튜브 다운로더, 파일 번호 매기기를 한곳에서.">
 <meta name="theme-color" content="#131313">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -165,6 +165,7 @@ footer{display:flex;justify-content:space-between;gap:12px;margin-top:28px;color
     <button class="tool" data-id="hex" data-kind="이미지" data-tags="색상 컬러 rgb 스포이드 hex"><span class="tool-top"><span class="tool-icon"><i data-i="pipette"></i></span><span class="tool-cat">이미지</span></span><h3>HEX 코드 추출기</h3><p>사진 속 색을 클릭해 HEX·RGB 추출</p><span class="tool-foot"><span>HEX / RGB</span><span class="tool-open">열기 <i data-i="arrow-up-right"></i></span></span></button>
     <button class="tool" data-id="yt" data-kind="영상" data-tags="youtube 영상 다운로드 mp4"><span class="tool-top"><span class="tool-icon"><i data-i="youtube"></i></span><span class="tool-cat">영상</span></span><h3>유튜브 다운로드</h3><p>Windows용 다운로드 프로그램</p><span class="tool-foot"><span>WINDOWS · ZIP</span><span class="tool-open">열기 <i data-i="arrow-up-right"></i></span></span></button>
     <button class="tool" data-id="qr" data-kind="유틸리티" data-tags="qr 큐알 링크 텍스트 이미지 업로드"><span class="tool-top"><span class="tool-icon"><i data-i="qr-code"></i></span><span class="tool-cat">유틸리티</span></span><h3>QR 코드 제작툴</h3><p>링크·텍스트·이미지를 QR로</p><span class="tool-foot"><span>PNG / SVG</span><span class="tool-open">열기 <i data-i="arrow-up-right"></i></span></span></button>
+    <button class="tool" data-id="oe" data-kind="유틸리티" data-tags="파일 이름 번호 홀수 짝수 일괄 변경 rename"><span class="tool-top"><span class="tool-icon"><i data-i="list"></i></span><span class="tool-cat">유틸리티</span></span><h3>홀짝 번호 매기기</h3><p>폴더 속 파일에 01·03 / 02·04 번호를 한 번에</p><span class="tool-foot"><span>WINDOWS · ZIP</span><span class="tool-open">열기 <i data-i="arrow-up-right"></i></span></span></button>
     <p class="no-result" hidden>검색 결과가 없습니다.</p>
    </div>
   </aside>
@@ -187,6 +188,7 @@ youtube:'<path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0
 'qr-code':'<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>',
 'arrow-up-right':'<path d="M7 7h10v10"/><path d="M7 17 17 7"/>',
 pointer:'<path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/>',
+list:'<path d="M10 6h11"/><path d="M10 12h11"/><path d="M10 18h11"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>',
 upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
 download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
 copy:'<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
@@ -252,7 +254,8 @@ function hexTool(){
 /* ---------- 다운로드 도구 ---------- */
 const DL={
  heic:{file:'/downloads/heic-converter-v3.zip',ver:'v3',size:'7KB',sha:'6d8dfbe003c846185aac3c4225df341c890ad68b7b4fcbdb3cb06d01a0c84271',steps:['ZIP 압축을 모두 풉니다.','RUN_ME.cmd를 실행합니다.','첫 실행 때 변환 엔진(ImageMagick)을 내려받습니다.']},
- yt:{file:'/downloads/youtube-downloader-v3.zip?v=3.4',ver:'v3.4',size:'5.5MB',sha:'f23ab04775ac84826a58237ea5c67aa74c8da6bfd518e0f53c9f5250b373cb2d',steps:['ZIP 압축을 모두 풉니다.','WORKKIT_YouTube_Downloader.exe를 실행합니다.','링크와 화질은 프로그램에서 고릅니다.'],warn:'본인 소유이거나 허락받은 영상에만 사용하세요.'}
+ oe:{file:'/downloads/oddeven-renamer-v2.zip',ver:'v2.0',size:'4.0MB',sha:'e90569e9620c5eeddb47484cab5fa482ee184e3712237f120a99264af7dc7744',steps:['ZIP 압축을 모두 풉니다.','WORKKIT_OddEven_Renamer.exe를 실행합니다.','폴더를 고르고 홀수·짝수를 선택합니다.']},
+ yt:{file:'/downloads/youtube-downloader-v3.zip?v=3.5',ver:'v3.5',size:'5.5MB',sha:'db3b05e11807c5495b614853375ec74a1aabba6d0db40878a5fe8c99281f8ff9',steps:['ZIP 압축을 모두 풉니다.','WORKKIT_YouTube_Downloader.exe를 실행합니다.','링크와 화질은 프로그램에서 고릅니다.'],warn:'본인 소유이거나 허락받은 영상에만 사용하세요.'}
 };
 function dlTool(id){
  const d=DL[id];
@@ -379,7 +382,7 @@ function qrTool(){
 }
 
 /* ---------- 카드 선택 ---------- */
-const TOOLS={heic:()=>dlTool('heic'),yt:()=>dlTool('yt'),hex:hexTool,qr:qrTool};
+const TOOLS={heic:()=>dlTool('heic'),yt:()=>dlTool('yt'),oe:()=>dlTool('oe'),hex:hexTool,qr:qrTool};
 cards.forEach(c=>c.onclick=()=>{
  cards.forEach(x=>x.setAttribute('aria-pressed',String(x===c)));
  title.textContent=$('h3',c).textContent;closeBtn.hidden=false;setNote('');TOOLS[c.dataset.id]();

@@ -7,8 +7,19 @@ let modelPromise;
 
 async function loadModel() {
   if (!navigator.gpu) throw new Error('AI 영역 재분석에는 WebGPU를 지원하는 최신 Chrome 또는 Edge가 필요합니다.');
+  const adapter = await navigator.gpu.requestAdapter();
+  if (!adapter) throw new Error('사용 가능한 WebGPU 장치를 찾지 못했습니다.');
+  const dtype = adapter.features.has('shader-f16') ? 'fp16' : 'fp32';
+  const loadWeights = async () => {
+    try {
+      return await SamModel.from_pretrained(MODEL_ID, { dtype, device: 'webgpu' });
+    } catch (error) {
+      if (dtype === 'fp16') return SamModel.from_pretrained(MODEL_ID, { dtype: 'fp32', device: 'webgpu' });
+      throw error;
+    }
+  };
   modelPromise ||= Promise.all([
-    SamModel.from_pretrained(MODEL_ID, { dtype: 'fp16', device: 'webgpu' }),
+    loadWeights(),
     AutoProcessor.from_pretrained(MODEL_ID),
   ]).catch(error => { modelPromise = null; throw error; });
   return modelPromise;

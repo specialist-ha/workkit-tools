@@ -39,7 +39,7 @@ html[data-theme=light]{color-scheme:light;
  --dot:rgba(0,0,0,.13);--spot:rgba(18,207,169,.13);--shadow:rgba(20,40,34,.16)}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scrollbar-color:var(--line2) transparent}
-body{margin:0;background:var(--bg);color:var(--text);font:var(--fs)/1.65 "Pretendard Variable",Pretendard,"Noto Sans KR",system-ui,sans-serif;min-height:100vh;word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased;transition:background-color .25s,color .25s}
+body{margin:0;background:var(--bg);color:var(--text);font:var(--fs)/1.65 "Pretendard Variable",Pretendard,"Noto Sans KR",system-ui,sans-serif;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased;transition:background-color .25s,color .25s}
 ::selection{background:rgba(var(--glow),.3)}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -54,7 +54,11 @@ button:disabled{opacity:.5;cursor:default}
 .name{font-size:20px;font-weight:900;letter-spacing:-.5px}
 .label{color:var(--sub);font-size:13px;margin-left:4px}
 
-main{max-width:1296px;margin:0 auto;padding:clamp(24px,4vw,44px) var(--gutter) 48px;padding-bottom:max(48px,env(safe-area-inset-bottom))}
+main{flex:1 0 auto;width:100%;max-width:1296px;margin:0 auto;padding:clamp(24px,4vw,44px) var(--gutter) 48px}
+.brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;border-radius:12px;margin:-4px;padding:4px}
+.brand:hover .logo{box-shadow:0 0 0 3px rgba(var(--glow),.18)}
+.brand:hover .name{color:var(--ink)}
+.logo,.name{transition:color .15s,box-shadow .15s}
 .eyebrow{font-size:12px;letter-spacing:2px;color:var(--ink);font-weight:800}
 h1{font-size:clamp(28px,2.2vw + 18px,42px);line-height:1.28;font-weight:900;letter-spacing:-.04em;margin:10px 0 8px;text-wrap:balance}
 .lead{color:var(--sub);margin:0 0 28px;font-weight:500;font-size:clamp(14px,.3vw + 13px,16px)}
@@ -215,7 +219,7 @@ ol.steps li+li{margin-top:4px}
 .conv{display:grid;grid-template-columns:1fr auto 1fr;gap:6px 10px;font-size:14px;align-items:center;max-width:440px}
 .conv span:nth-child(3n+2){color:var(--ink)}
 
-footer{display:flex;justify-content:space-between;gap:12px;margin-top:28px;color:var(--sub);font-size:12px;flex-wrap:wrap}
+footer{position:relative;z-index:1;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--sub);font-size:12px;border-top:1px solid var(--line);padding:18px max(var(--gutter),calc((100vw - 1240px)/2));padding-bottom:max(18px,env(safe-area-inset-bottom))}
 
 /* ---- 반응형 ---- */
 @media(max-width:1023px){
@@ -254,7 +258,7 @@ footer{display:flex;justify-content:space-between;gap:12px;margin-top:28px;color
 </style>
 </head>
 <body>
-<header class="top"><span class="logo"><i data-i="command"></i></span><span class="name">WORKKIT</span><span class="label">나의 작은 작업 도구함</span></header>
+<header class="top"><a class="brand" href="/" aria-label="WORKKIT 홈으로"><span class="logo"><i data-i="command"></i></span><span class="name">WORKKIT</span><span class="label">나의 작은 작업 도구함</span></a></header>
 <div class="spot" aria-hidden="true"></div><div class="dots" aria-hidden="true"></div>
 <main>
  <section id="home">
@@ -282,8 +286,8 @@ footer{display:flex;justify-content:space-between;gap:12px;margin-top:28px;color
   <div id="body" class="tv-body"></div>
   <p class="note" id="note" hidden></p>
  </section>
- <footer><span>WORKKIT · 자주 쓰는 도구를 가볍게</span><span>PERSONAL TOOLBOX</span></footer>
 </main>
+<footer><span>WORKKIT · 자주 쓰는 도구를 가볍게</span><span>PERSONAL TOOLBOX</span></footer>
 <script>
 (()=>{
 const ICONS={
@@ -424,6 +428,10 @@ function goHome(push){
  vt.finished.finally(()=>{nameTile(id,false);const t=tiles.find(x=>x.dataset.id===id);t&&t.focus({preventScroll:true})});
 }
 $('#back').onclick=()=>history.state&&history.state.id?history.back():goHome(true);
+/* 상단 WORKKIT 누르면 홈(전체 목록)으로 */
+$('.brand').onclick=e=>{if(e.ctrlKey||e.metaKey||e.shiftKey||e.button)return;e.preventDefault();
+ if(current)goHome(true);else if(location.hash)history.pushState(null,'',location.pathname);
+ search.value='';cat='전체';document.querySelectorAll('.filter').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.cat==='전체')));filter();scrollTo({top:0,behavior:'smooth'})};
 addEventListener('keydown',e=>{if(e.key==='Escape'&&current)$('#back').click()});
 addEventListener('popstate',()=>{const id=location.hash.slice(1);byId(id)?openTool(id,false):goHome(false)});
 

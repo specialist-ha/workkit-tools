@@ -1,1 +1,1 @@
-{"name":"workkit-tools","version":"1.1.0","private":true,"type":"module","dependencies":{"@vercel/blob":"2.7.0"}}
+{"name":"workkit-tools","version":"1.2.0","private":true,"type":"module","scripts":{"build:tools":"esbuild src/background-removal.js --bundle --format=esm --platform=browser --target=es2022 --outfile=assets/background-removal.js"},"dependencies":{"@vercel/blob":"2.7.0","@imgly/background-removal":"1.7.0","onnxruntime-web":"1.21.0"},"devDependencies":{"esbuild":"0.25.12"}}

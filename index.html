@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WORKKIT · 나의 작업 도구함</title>
-<meta name="description" content="HEIC 변환, HEX 색상 추출, PDF 도구, QR 코드 제작, 유튜브 다운로더, 파일 번호 매기기를 한곳에서.">
+<meta name="description" content="배경 제거, 색상 팔레트 생성, HEIC 변환, PDF 편집, QR 코드 제작 등 업무 도구를 한곳에서.">
 <meta name="theme-color" content="#131313">
 <script>try{if(localStorage.getItem('workkit-theme')==='light'){document.documentElement.dataset.theme='light';document.querySelector('meta[name=theme-color]').content='#ffffff'}}catch(e){}</script>
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
@@ -179,6 +179,17 @@ input[type=color]{width:48px;height:40px;padding:2px;border:1px solid var(--line
 canvas{display:block;max-width:100%;height:auto;border-radius:8px;cursor:crosshair}
 .swatch{width:40px;height:40px;border-radius:8px;border:1px solid var(--line2)}
 .hexval{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.palette-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.palette-color{min-width:0;padding:0;border:1px solid var(--line2);background:var(--sunken);border-radius:12px;overflow:hidden;text-align:center}
+.palette-color .paint{display:block;height:96px}
+.palette-color b{display:block;padding:10px 2px;font-size:12px;letter-spacing:-.2px}
+.palette-color:focus-visible{outline:2px solid var(--accent)}
+.sample-stage{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:grid;place-items:center;min-height:220px;background-color:#bbb;background-image:linear-gradient(45deg,#999 25%,transparent 25%),linear-gradient(-45deg,#999 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#999 75%),linear-gradient(-45deg,transparent 75%,#999 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0}
+.sample-stage canvas{max-height:440px;object-fit:contain;touch-action:none}
+.image-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.image-pair h4{margin:0 0 8px;font-size:14px}
+.image-pair img{max-width:100%;max-height:440px;object-fit:contain}
+.range-field{display:flex;align-items:center;gap:12px}.range-field input{flex:1;min-width:0;accent-color:var(--accent)}
 
 .history h4{margin:0 0 10px;font-size:15px}
 .hist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -244,6 +255,8 @@ footer{position:relative;z-index:1;display:flex;justify-content:space-between;ga
  .seg::-webkit-scrollbar{display:none}
  .thumbs{grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;max-height:60vh}
  .opts{max-width:none}
+ .palette-grid{gap:5px}.palette-color .paint{height:65px}.palette-color b{font-size:10px;padding:8px 1px}
+ .image-pair{grid-template-columns:1fr}
 }
 @media(max-width:479px){
  .dl-meta{grid-template-columns:1fr;gap:2px}
@@ -313,6 +326,8 @@ x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
 sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
 moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
 grip:'<circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/>'
+,'palette':'<circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/><path d="M12 22a10 10 0 1 1 10-10c0 2.1-1.8 3-3.5 3H16a2 2 0 0 0-2 2v1a4 4 0 0 1-2 4Z"/>'
+,'scissors':'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="m8.12 8.12 12.02 12.02M14.8 9.2 20 4 8.12 15.88"/>'
 };
 const icon=n=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]||''}</svg>`;
 const paint=el=>el.querySelectorAll('i[data-i]').forEach(i=>i.outerHTML=icon(i.dataset.i));
@@ -327,6 +342,8 @@ let cat='전체';
 const TOOL_LIST=[
  {id:'heic',name:'HEIC 변환기',kind:'이미지',icon:'images',desc:'아이폰 사진을 JPG·PNG로 한 번에 변환',foot:'WINDOWS · ZIP',tags:'아이폰 사진 jpg png 변환 heic',run:()=>dlTool('heic')},
  {id:'hex',name:'HEX 코드 추출기',kind:'이미지',icon:'pipette',desc:'사진 속 색을 클릭해 HEX·RGB 추출',foot:'HEX / RGB',tags:'색상 컬러 rgb 스포이드 hex',run:()=>hexTool()},
+ {id:'palette',name:'색상 팔레트 생성기',kind:'이미지',icon:'palette',desc:'이미지 대표색 추출·조화색 생성·대비 확인',foot:'브라우저 · HEX',tags:'색상 팔레트 배색 디자인 추출 조화색',run:()=>paletteTool()},
+ {id:'removebg',name:'배경 제거기',kind:'이미지',icon:'scissors',desc:'AI로 배경을 지우고 투명 PNG로 저장',foot:'브라우저 · AI',tags:'누끼 배경 제거 투명 png 사진 인물 사물',run:()=>backgroundTool()},
  {id:'yt',name:'유튜브 다운로드',kind:'영상',icon:'youtube',desc:'링크만 넣으면 편집용 MP4·MP3로 저장',foot:'WINDOWS · ZIP',tags:'youtube 영상 다운로드 mp4 mp3',run:()=>dlTool('yt')},
  {id:'pdf',name:'PDF 도구',kind:'문서',icon:'file-text',desc:'PDF 합치기·페이지 떼어내기, 이미지↔PDF, 한글·워드↔PDF',foot:'브라우저 · WINDOWS',tags:'pdf 병합 합치기 분할 나누기 추출 페이지 삭제 회전 이미지 jpg png 한글 hwp 워드 word docx 변환',run:()=>pdfTool()},
  {id:'qr',name:'QR 코드 제작툴',kind:'유틸리티',icon:'qr-code',desc:'링크·텍스트·이미지를 QR로',foot:'PNG / SVG',tags:'qr 큐알 링크 텍스트 이미지 업로드',run:()=>qrTool()},
@@ -463,6 +480,37 @@ function hexTool(){
  canvas.onclick=e=>{const r=canvas.getBoundingClientRect(),x=Math.min(canvas.width-1,Math.max(0,Math.floor((e.clientX-r.left)/r.width*canvas.width))),y=Math.min(canvas.height-1,Math.max(0,Math.floor((e.clientY-r.top)/r.height*canvas.height))),[R,G,B]=ctx.getImageData(x,y,1,1).data;
   hex='#'+[R,G,B].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();$('.hexval',res).textContent=hex;$('.rgbval',res).textContent=`RGB(${R}, ${G}, ${B})`;$('.swatch',res).style.background=hex;res.hidden=false;status(st,'')};
  $('#hex-copy').onclick=()=>copy(hex,st);
+}
+
+/* ---------- 색상 팔레트 생성기 ---------- */
+const hexRGB=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const rgbHEX=rgb=>'#'+rgb.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('').toUpperCase();
+function paletteTool(){
+ body.innerHTML=`<div class="stack"><div class="seg"><button id="pal-image" aria-pressed="true">이미지에서 추출</button><button id="pal-manual" aria-pressed="false">색상에서 생성</button></div><div id="pal-upload">${dropHTML('pal-file','image/png,image/jpeg,image/webp,image/gif','이미지 선택 또는 끌어놓기','사진에서 가장 많이 사용된 색상 5개를 찾습니다.')}</div><div id="pal-input" hidden class="row"><label class="field"><span>기준 색상</span><input type="color" id="pal-picker" value="#09ebc1"></label><label class="field"><span>HEX 코드</span><input class="input" id="pal-hex" value="#09EBC1" maxlength="7" inputmode="text"></label><label class="field"><span>배색 방식</span><select id="pal-mode"><option value="analog">유사색</option><option value="complement">보색</option><option value="triad">삼각 배색</option><option value="tone">명도 단계</option></select></label></div><div id="pal-output" hidden><p class="hint" style="margin-bottom:12px">색상 카드를 클릭하면 HEX 코드가 복사됩니다.</p><div class="palette-grid" id="pal-colors"></div><div class="row" style="margin-top:14px"><button class="btn" id="pal-css">${icon('copy')} CSS 변수 복사</button><button class="btn" id="pal-png">${icon('download')} 팔레트 PNG 저장</button></div><p id="pal-contrast" class="status"></p></div><p class="status" id="pal-status"></p></div>`;paint(body);
+ setNote('이미지는 서버로 전송되지 않으며, 브라우저에서 분석합니다.');
+ const st=$('#pal-status'),out=$('#pal-output');let colors=[];
+ const show=cs=>{colors=cs;out.hidden=false;$('#pal-colors').innerHTML=cs.map((h,i)=>`<button class="palette-color" data-hex="${h}" title="${h} 복사"><span class="paint" style="background:${h}"></span><b>${h}</b></button>`).join('');$('#pal-colors').querySelectorAll('button').forEach(b=>b.onclick=()=>copy(b.dataset.hex,st));const c=cs[0];if(c){const rgb=hexRGB(c).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4});const lum=.2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2];$('#pal-contrast').textContent=`대표색 ${c} · 글자색 추천: ${(lum+.05)/.05>=4.5?'검정색':'흰색'} (대비율 기준)`}status(st,'색상 5개를 생성했습니다.')};
+ const tabs=[$('#pal-image'),$('#pal-manual')];tabs.forEach((b,i)=>b.onclick=()=>{tabs.forEach((x,j)=>x.setAttribute('aria-pressed',String(i===j)));$('#pal-upload').hidden=!!i;$('#pal-input').hidden=!i;out.hidden=!i;if(i)generate()});
+ function generate(){const h=$('#pal-hex').value.trim().toUpperCase();if(!/^#[0-9A-F]{6}$/.test(h)){status(st,'HEX 코드는 #RRGGBB 형식으로 입력해주세요.',true);return}const [r,g,b]=hexRGB(h),mode=$('#pal-mode').value;const hsv=rgbToHsv(r,g,b);const shifts=mode==='complement'?[0,180,165,195,30]:mode==='triad'?[0,120,240,60,300]:[0,-40,-20,20,40];show(shifts.map((s,i)=>{const v=mode==='tone'?Math.max(.18,Math.min(1,hsv[2]+(i-2)*.17)):hsv[2];return rgbHEX(hsvToRgb((hsv[0]+s+360)%360,hsv[1],v))}))}
+ $('#pal-picker').oninput=e=>{$('#pal-hex').value=e.target.value.toUpperCase();generate()};$('#pal-hex').oninput=e=>{if(/^#[0-9a-f]{6}$/i.test(e.target.value)){$('#pal-picker').value=e.target.value;generate()}};$('#pal-mode').onchange=generate;
+ dropzone($('#pal-file-drop'),$('#pal-file'),f=>{if(!f.type.startsWith('image/')){status(st,'이미지 파일을 선택해주세요.',true);return}const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{try{const c=document.createElement('canvas'),scale=Math.min(1,180/im.width,180/im.height);c.width=Math.max(1,Math.round(im.width*scale));c.height=Math.max(1,Math.round(im.height*scale));const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0,c.width,c.height);const d=x.getImageData(0,0,c.width,c.height).data,counts=new Map();for(let i=0;i<d.length;i+=4){if(d[i+3]<180)continue;const k=[d[i],d[i+1],d[i+2]].map(v=>Math.round(v/24)*24).map(v=>Math.min(255,v));const id=k.join(',');counts.set(id,(counts.get(id)||0)+1)}const sorted=[...counts].sort((a,b)=>b[1]-a[1]);const chosen=[];for(const [key] of sorted){const rgb=key.split(',').map(Number);if(chosen.every(prev=>Math.hypot(...prev.map((v,j)=>v-rgb[j]))>55))chosen.push(rgb);if(chosen.length===5)break}while(chosen.length<5&&sorted.length)chosen.push(sorted[chosen.length%sorted.length][0].split(',').map(Number));if(!chosen.length)throw Error('색상을 찾지 못했습니다.');show(chosen.map(rgbHEX))}catch(e){status(st,e.message,true)}finally{URL.revokeObjectURL(u)}};im.onerror=()=>{status(st,'이미지를 열지 못했습니다.',true);URL.revokeObjectURL(u)};im.src=u});
+ $('#pal-css').onclick=()=>copy(colors.map((h,i)=>`--palette-${i+1}: ${h};`).join('\n'),st);
+ $('#pal-png').onclick=()=>{const c=document.createElement('canvas');c.width=1000;c.height=260;const x=c.getContext('2d');colors.forEach((h,i)=>{x.fillStyle=h;x.fillRect(i*200,0,200,210);x.fillStyle='#202020';x.font='bold 20px sans-serif';x.textAlign='center';x.fillText(h,i*200+100,245)});c.toBlob(b=>b&&save(b,'workkit-palette.png'),'image/png')};
+}
+function rgbToHsv(r,g,b){r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;let h=0;if(d){if(max===r)h=((g-b)/d)%6;else if(max===g)h=(b-r)/d+2;else h=(r-g)/d+4}return[(h*60+360)%360,max?d/max:0,max]}
+function hsvToRgb(h,s,v){const c=v*s,x=c*(1-Math.abs(h/60%2-1)),m=v-c;let p=h<60?[c,x,0]:h<120?[x,c,0]:h<180?[0,c,x]:h<240?[0,x,c]:h<300?[x,0,c]:[c,0,x];return p.map(n=>(n+m)*255)}
+
+/* ---------- 브라우저 AI 배경 제거 ---------- */
+function backgroundTool(){
+ body.innerHTML=`<div class="stack">${dropHTML('bg-file','image/png,image/jpeg,image/webp','배경을 지울 이미지 선택 또는 끌어놓기','JPG · PNG · WEBP / 인물·사물 사진')}<p class="hint">처음 실행할 때 AI 모델을 내려받습니다. 처리 시간은 기기 성능에 따라 다르며, 사진은 서버에 업로드하지 않습니다.</p><div class="prog" id="bg-progress" hidden><i></i></div><p class="status" id="bg-status"></p><div id="bg-result" hidden class="stack"><div class="image-pair"><div><h4>원본</h4><div class="sample-stage"><img id="bg-original" alt="원본 이미지"></div></div><div><h4>배경 제거 결과 · 브러시로 수정 가능</h4><div class="sample-stage"><canvas id="bg-canvas" aria-label="배경 제거 편집 화면"></canvas></div></div></div><div class="row"><div class="seg"><button id="bg-erase" aria-pressed="true">지우개</button><button id="bg-restore" aria-pressed="false">복원</button></div><label class="range-field">브러시 크기 <input type="range" min="5" max="100" value="25" id="bg-size"><output id="bg-size-label">25</output></label></div><div class="row"><button class="btn" id="bg-reset">AI 결과로 초기화</button><button class="btn primary" id="bg-save">${icon('download')} 투명 PNG 다운로드</button></div></div></div>`;paint(body);
+ setNote('AI 처리에는 IMG.LY 오픈소스(AGPL-3.0)가 사용됩니다. 소스와 라이선스: github.com/specialist-ha/workkit-tools · /assets/LICENSE-background-removal.md. 결과는 기기에서 생성됩니다.');
+ const st=$('#bg-status'),result=$('#bg-result'),progress=$('#bg-progress'),bar=$('#bg-progress i'),canvas=$('#bg-canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});let source=null,output=null,originalURL=null,mode='erase',drawing=false,active=false;
+ const applyBrush=e=>{if(!drawing||!source||!output)return;const rect=canvas.getBoundingClientRect(),cx=(e.clientX-rect.left)/rect.width*canvas.width,cy=(e.clientY-rect.top)/rect.height*canvas.height,rad=Number($('#bg-size').value)*canvas.width/800;const x0=Math.max(0,Math.floor(cx-rad)),y0=Math.max(0,Math.floor(cy-rad)),x1=Math.min(canvas.width,Math.ceil(cx+rad)),y1=Math.min(canvas.height,Math.ceil(cy+rad));if(x0>=x1||y0>=y1)return;const img=ctx.getImageData(x0,y0,x1-x0,y1-y0);for(let y=0;y<y1-y0;y++)for(let x=0;x<x1-x0;x++){const dist=Math.hypot(x+x0-cx,y+y0-cy);if(dist>rad)continue;const i=((y+y0)*canvas.width+x+x0)*4,j=(y*(x1-x0)+x)*4;const strength=Math.min(1,(rad-dist)/Math.max(1,rad*.3));const target=mode==='restore'?source.data:null;for(let k=0;k<4;k++){const value=target?target[i+k]:(k===3?0:img.data[j+k]);img.data[j+k]=Math.round(img.data[j+k]*(1-strength)+value*strength)}}ctx.putImageData(img,x0,y0)};
+ canvas.onpointerdown=e=>{if(!output||active)return;drawing=true;canvas.setPointerCapture(e.pointerId);applyBrush(e)};canvas.onpointermove=applyBrush;canvas.onpointerup=canvas.onpointercancel=()=>drawing=false;
+ $('#bg-erase').onclick=()=>{mode='erase';$('#bg-erase').setAttribute('aria-pressed','true');$('#bg-restore').setAttribute('aria-pressed','false')};$('#bg-restore').onclick=()=>{mode='restore';$('#bg-restore').setAttribute('aria-pressed','true');$('#bg-erase').setAttribute('aria-pressed','false')};$('#bg-size').oninput=e=>$('#bg-size-label').textContent=e.target.value;
+ $('#bg-reset').onclick=()=>output&&ctx.putImageData(output,0,0);
+ $('#bg-save').onclick=()=>canvas.toBlob(b=>b&&save(b,'workkit-background-removed.png'),'image/png');
+ dropzone($('#bg-file-drop'),$('#bg-file'),async f=>{if(!/^image\/(png|jpeg|webp)$/.test(f.type)){status(st,'JPG, PNG, WEBP 파일만 지원합니다.',true);return}if(f.size>20*1024*1024){status(st,'20MB 이하 이미지를 선택해주세요.',true);return}if(active){status(st,'현재 이미지를 처리 중입니다. 잠시 기다려주세요.',true);return}active=true;result.hidden=true;progress.hidden=false;bar.style.width='0%';status(st,'AI 모델을 준비하고 있습니다. 최초 실행은 시간이 걸릴 수 있습니다.');try{const imageURL=URL.createObjectURL(f);const image=new Image();image.src=imageURL;await image.decode();if(originalURL)URL.revokeObjectURL(originalURL);originalURL=imageURL;$('#bg-original').src=imageURL;const {removeImageBackground}=await import('/assets/background-removal.js');const blob=await removeImageBackground(f,p=>{bar.style.width=p+'%';status(st,`AI 모델 다운로드 중… ${p}%`)});const processed=await createImageBitmap(blob);const w=Math.min(image.naturalWidth,2048),h=Math.max(1,Math.round(image.naturalHeight*w/image.naturalWidth));canvas.width=w;canvas.height=h;const temp=document.createElement('canvas');temp.width=w;temp.height=h;const t=temp.getContext('2d',{willReadFrequently:true});t.drawImage(image,0,0,w,h);source=t.getImageData(0,0,w,h);ctx.clearRect(0,0,w,h);ctx.drawImage(processed,0,0,w,h);output=ctx.getImageData(0,0,w,h);processed.close();result.hidden=false;status(st,'완료! 브러시로 가장자리를 다듬거나 PNG를 저장하세요.')}catch(e){status(st,'배경 제거에 실패했습니다. 다른 이미지 또는 최신 Chrome/Edge에서 다시 시도해주세요. ('+(e?.message||'알 수 없는 오류')+')',true)}finally{active=false;progress.hidden=true}});
 }
 
 /* ---------- 다운로드 도구 ---------- */

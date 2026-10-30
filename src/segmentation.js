@@ -5,18 +5,24 @@ import { SamModel, AutoProcessor, RawImage, Tensor } from 'https://cdn.jsdelivr.
 const MODEL_ID = 'Xenova/slimsam-77-uniform';
 let modelPromise;
 
-async function loadModel() {
-  if (!navigator.gpu) throw new Error('AI 영역 재분석에는 WebGPU를 지원하는 최신 Chrome 또는 Edge가 필요합니다.');
-  const adapter = await navigator.gpu.requestAdapter();
-  if (!adapter) throw new Error('사용 가능한 WebGPU 장치를 찾지 못했습니다.');
-  const dtype = adapter.features.has('shader-f16') ? 'fp16' : 'fp32';
+async function loadModel(onProgress) {
+  let adapter = null;
+  if (navigator.gpu) {
+    try { adapter = await navigator.gpu.requestAdapter(); } catch { /* CPU fallback */ }
+  }
+  const progress_callback = event => {
+    if (event?.status === 'progress' && event.total) onProgress?.(`모델 다운로드 ${Math.round(event.loaded / event.total * 100)}%`);
+  };
   const loadWeights = async () => {
-    try {
-      return await SamModel.from_pretrained(MODEL_ID, { dtype, device: 'webgpu' });
-    } catch (error) {
-      if (dtype === 'fp16') return SamModel.from_pretrained(MODEL_ID, { dtype: 'fp32', device: 'webgpu' });
-      throw error;
+    if (adapter) {
+      const dtype = adapter.features.has('shader-f16') ? 'fp16' : 'fp32';
+      try {
+        onProgress?.('GPU 모델 로딩 중');
+        return await SamModel.from_pretrained(MODEL_ID, { dtype, device: 'webgpu', progress_callback });
+      } catch { onProgress?.('GPU 실행이 어려워 CPU 모델로 전환합니다.'); }
     }
+    onProgress?.('CPU(WASM) 모델 로딩 중 · 시간이 걸릴 수 있습니다.');
+    return SamModel.from_pretrained(MODEL_ID, { dtype: 'q8', device: 'wasm', progress_callback });
   };
   modelPromise ||= Promise.all([
     loadWeights(),
@@ -25,17 +31,19 @@ async function loadModel() {
   return modelPromise;
 }
 
-export async function refineSelection(file, points) {
+export async function refineSelection(file, points, onProgress) {
   if (!points.length) throw new Error('살릴 영역 또는 지울 영역을 먼저 표시해주세요.');
-  const [model, processor] = await loadModel();
+  const [model, processor] = await loadModel(onProgress);
   const url = URL.createObjectURL(file);
   try {
+    onProgress?.('이미지 분석 중 · CPU에서는 오래 걸릴 수 있습니다.');
     const image = await RawImage.fromURL(url);
     const processed = await processor(image);
     const embeddings = await model.get_image_embeddings(processed);
     const [height, width] = processed.reshaped_input_sizes[0];
     const input_points = new Tensor('float32', points.flatMap(p => [p.x * width, p.y * height]), [1, 1, points.length, 2]);
     const input_labels = new Tensor('int64', points.map(p => BigInt(p.keep ? 1 : 0)), [1, 1, points.length]);
+    onProgress?.('지정한 영역의 경계를 계산 중');
     const { pred_masks, iou_scores } = await model({ ...embeddings, input_points, input_labels });
     const masks = await processor.post_process_masks(pred_masks, processed.original_sizes, processed.reshaped_input_sizes);
     const mask = RawImage.fromTensor(masks[0][0]);

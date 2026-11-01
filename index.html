@@ -54,7 +54,7 @@ button:disabled{opacity:.5;cursor:default}
 .name{font-size:20px;font-weight:900;letter-spacing:-.5px}
 .label{color:var(--sub);font-size:13px;margin-left:4px}
 
-main{flex:1 0 auto;width:100%;max-width:1296px;margin:0 auto;padding:clamp(24px,4vw,44px) var(--gutter) 48px}
+main{flex:1 0 auto;display:flex;flex-direction:column;width:100%;max-width:1296px;margin:0 auto;padding:clamp(24px,4vw,44px) var(--gutter) 48px}
 .brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;border-radius:12px;margin:-4px;padding:4px}
 .brand:hover .logo{box-shadow:0 0 0 3px rgba(var(--glow),.18)}
 .brand:hover .name{color:var(--ink)}
@@ -100,6 +100,23 @@ h1{font-size:clamp(28px,2.2vw + 18px,42px);line-height:1.28;font-weight:900;lett
 .tile.theme .ic{transition:transform .5s cubic-bezier(.2,.9,.25,1.2)}
 .tile.theme:hover .ic{transform:rotate(-20deg) scale(1.06)}
 .on-touch{display:none}
+/* ---- 도구 화면일 때: 아이콘들이 작업창 아래 '바로가기 독'으로 내려감 ---- */
+.dock-wrap{view-transition-name:dock}
+html.theme-vt .dock-wrap{view-transition-name:none}
+::view-transition-old(dock),::view-transition-new(dock){height:100%;object-fit:none;object-position:top left}
+.dock-title{display:none}
+body.tool-mode #home{order:2;margin-top:20px}
+body.tool-mode #home>:not(.dock-wrap){display:none}
+body.tool-mode .dock-wrap{min-height:0;padding:16px 18px 14px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}
+body.tool-mode .dock-title{display:block;font-size:12px;letter-spacing:1px;color:var(--sub);font-weight:800;margin:0 0 12px}
+body.tool-mode .dock{--tile:56px;display:flex;flex-wrap:wrap;gap:14px 8px;padding:4px 2px;justify-content:flex-start}
+body.tool-mode .cell{width:auto;min-width:78px;gap:6px}
+body.tool-mode .tile-label{font-size:12px;max-width:86px}
+body.tool-mode .dock .cell[hidden]{display:flex!important}
+body.tool-mode .no-result{display:none!important}
+body.tool-mode .pop{display:none}
+.tile[aria-current=true]{border-color:rgb(var(--g));background:linear-gradient(180deg,var(--tile-ha),var(--tile-hb));box-shadow:0 0 0 1px rgb(var(--g)),0 0 18px -4px rgba(var(--g),.5)}
+.tile[aria-current=true]+.tile-label{color:var(--text);font-weight:800}
 .no-result{color:var(--sub);padding:0 0 24px;margin:-24px 0 0}
 
 /* 설명창 */
@@ -260,6 +277,11 @@ footer{position:relative;z-index:1;display:flex;justify-content:space-between;ga
  .seg::-webkit-scrollbar{display:none}
  .thumbs{grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;max-height:60vh}
  .opts{max-width:none}
+ body.tool-mode .dock-wrap{padding:14px 0 10px;border-radius:16px}
+ body.tool-mode .dock-title{padding:0 16px}
+ body.tool-mode .dock{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:4px 16px 6px;gap:6px}
+ body.tool-mode .dock::-webkit-scrollbar{display:none}
+ body.tool-mode .cell{min-width:72px;flex:none}
  .palette-grid{gap:5px}.palette-color .paint{height:65px}.palette-color b{font-size:10px;padding:8px 1px}
  .image-pair{grid-template-columns:1fr}
 }
@@ -294,6 +316,7 @@ footer{position:relative;z-index:1;display:flex;justify-content:space-between;ga
    <label class="search"><i data-i="search"></i><input type="search" placeholder="도구 검색" aria-label="도구 검색"></label>
   </div>
   <div class="dock-wrap">
+   <div class="dock-title">다른 도구 바로가기</div>
    <div class="dock" role="list"></div>
    <p class="no-result" hidden>검색 결과가 없습니다.</p>
    <div class="pop" aria-hidden="true"></div>
@@ -386,7 +409,9 @@ addEventListener('pointermove',e=>{mx=e.clientX;my=e.clientY;if(!raf)raf=request
 
 /* ---------- 설명창 ---------- */
 let popFor=null;
+let quietFocus=false;
 function showPop(tile){
+ if(quietFocus||document.body.classList.contains('tool-mode'))return; /* 도구 화면의 독에서는 이름표만 */
  popFor=tile;const th=tile===themeBtn,l=isLight();
  const t=th?{kind:'화면 설정',name:l?'다크 모드':'라이트 모드',desc:l?'어두운 화면으로 되돌립니다.':'밝은 배경에 어두운 글자로 바꿉니다.',foot:l?'LIGHT → DARK':'DARK → LIGHT'}:byId(tile.dataset.id);
  pop.classList.toggle('violet',th);
@@ -425,15 +450,18 @@ const canMorph=typeof document.startViewTransition==='function';
 function nameTile(id,on){const t=tiles.find(x=>x.dataset.id===id);if(t){t.style.viewTransitionName=on?'card':'';t.firstElementChild.style.viewTransitionName=on?'card-icon':''}}
 function nameView(on){view.style.viewTransitionName=on?'card':'';$('.tv-icon').style.viewTransitionName=on?'card-icon':''}
 function renderTool(t){
- home.hidden=true;view.hidden=false;
+ document.body.classList.add('tool-mode');view.hidden=false;
+ tiles.forEach(x=>x.dataset.id===t.id?x.setAttribute('aria-current','true'):x.removeAttribute('aria-current'));
  $('.tv-icon').innerHTML=icon(t.icon);$('.tv-title').textContent=t.name;$('.tv-cat').textContent=t.kind+' · '+t.foot;
  setNote('');t.run();scrollTo(0,0);
 }
-function renderHome(){view.hidden=true;home.hidden=false;body.innerHTML='';setNote('')}
+function renderHome(){view.hidden=true;document.body.classList.remove('tool-mode');
+ const was=tiles.find(x=>x.hasAttribute('aria-current')); /* 독에서 고른 도구가 현재 분류에 없으면 '전체'로 */
+ if(was&&was.closest('.cell').hidden){search.value='';cat='전체';document.querySelectorAll('.filter').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.cat==='전체')));filter()}tiles.forEach(x=>x.removeAttribute('aria-current'));body.innerHTML='';setNote('')}
 let current=null;
 function openTool(id,push){
- const t=byId(id);if(!t)return;hidePop();
- if(push)history.pushState({id},'','#'+id);
+ const t=byId(id);if(!t)return;hidePop();if(id===current&&!view.hidden)return;
+ if(push)(current&&history.state&&history.state.id?history.replaceState:history.pushState).call(history,{id},'','#'+id); /* 독에서 도구를 바꿀 땐 기록을 쌓지 않아 '도구 목록'이 바로 홈으로 */
  current=id;
  if(!canMorph){renderTool(t);view.classList.remove('rise');void view.offsetWidth;view.classList.add('rise');return}
  nameTile(id,true);
@@ -447,7 +475,7 @@ function goHome(push){
  if(!canMorph){renderHome();return}
  nameView(true);
  const vt=document.startViewTransition(()=>{nameView(false);renderHome();nameTile(id,true)});
- vt.finished.finally(()=>{nameTile(id,false);const t=tiles.find(x=>x.dataset.id===id);t&&t.focus({preventScroll:true})});
+ vt.finished.finally(()=>{nameTile(id,false);const t=tiles.find(x=>x.dataset.id===id);if(t&&!t.closest('.cell').hidden){quietFocus=true;t.focus({preventScroll:true});quietFocus=false}});
 }
 $('#back').onclick=()=>history.state&&history.state.id?history.back():goHome(true);
 /* 상단 WORKKIT 누르면 홈(전체 목록)으로 */

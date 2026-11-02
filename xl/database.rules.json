@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "xl": {
+      ".read": true,
+      "chat": {
+        ".indexOn": ["ts"],
+        "$id": { ".write": true, ".validate": "newData.child('text').isString() && newData.child('text').val().length <= 500" }
+      },
+      "online": { "$id": { ".write": true } },
+      "games": { ".indexOn": ["ts"], "$id": { ".write": true } }
+    }
+  }
+}

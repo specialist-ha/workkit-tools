@@ -1,7 +1,40 @@
 {
-  "crons": [{ "path": "/api/cleanup", "schedule": "10 18 * * *" }],
+  "crons": [
+    {
+      "path": "/api/cleanup",
+      "schedule": "10 18 * * *"
+    }
+  ],
   "headers": [
-    { "source": "/downloads/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }] },
-    { "source": "/assets/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }] }
+    {
+      "source": "/downloads/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/xl/:path*",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/xl",
+      "destination": "/",
+      "permanent": false
+    }
   ]
 }

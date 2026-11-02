@@ -37,6 +37,7 @@ table.g th{background:#f3f3f3;color:#555;text-align:center;border-color:#d0d0d0;
 table.g td.rn{background:#f3f3f3;color:#555;text-align:center;border-color:#d0d0d0;position:sticky;left:0;z-index:1;font-size:11px}
 table.g th.corner{left:0;z-index:3}
 td.cur{outline:2px solid #1f6e43;outline-offset:-2px}
+.bframe{position:absolute;pointer-events:none;border:2px solid #1f6e43;box-shadow:0 0 0 3px rgba(31,110,67,.12);z-index:1}
 td.hd{background:#ddebf7;font-weight:600}
 td.r{text-align:right}td.c{text-align:center}td.b{font-weight:600}
 td.btn{background:#f2f2f2;text-align:center;cursor:pointer;color:#333;border:1px solid #bdbdbd}
@@ -249,14 +250,19 @@ sheets.chat={
       rows.push([txt(i+1,1,'c mute'),txt(timeStr(m.ts),1,'c mute'),txt(m.nick||nameCache[m.uid]||'담당자',1,m.uid===S.uid?'b':''),txt(m.text,1,'wrap'),txt(fmt(amt),1,'r mute'),''])});
     if(S.chatState==='ro')note('※ 읽기 전용 권한입니다. 공유한 사람에게 편집자 권한을 요청하세요.');
     const last=rows.length;
+    rows.push(['','','',txt('※ 24시간 지난 내역은 자동 삭제됩니다.',1,'mute'),btn('초기화','reset',1),'']);
     wrap.innerHTML=table([50,90,90,560,100,120],rows,'',Math.max(4,30-last));
-    const tr=wrap.querySelectorAll('tr')[last];
+    const tr=wrap.querySelectorAll('tr')[last+1];
     wrap.scrollTop=tr?Math.max(0,tr.offsetTop+tr.offsetHeight-wrap.clientHeight+60):0;
   },
   enter(){fx.value=S.draft;setTimeout(()=>fx.focus(),0)},
   leave(){S.draft=fx.value},
-  submit(v){chatSend(v)}
+  submit(v){chatSend(v)},
+  act(a){if(a!=='reset')return;if(!FB||S.chatState==='off')return;
+    confirmDlg('내역 초기화','모든 사람의 채팅 내역이 전부 지워집니다. 되돌릴 수 없어요. 계속할까요?',()=>{
+      FB.ref('xl/chat').get().then(s=>{const up={};s.forEach(c=>{up[c.key]=null});if(Object.keys(up).length)return FB.ref('xl/chat').update(up)}).catch(()=>{})})}
 };
+setInterval(()=>{const cut=Date.now()-864e5;if(S.msgs.some(m=>m.ts<cut)){S.msgs=S.msgs.filter(m=>!(m.ts<cut));if(S.sheet==='chat'){const d=fx.value;render();fx.value=d}}},60000);
 
 /* ================= 공통: 2인 대전 방 ================= */
 function needNet(g){if(!NET.ready){g.info='공유 연결이 없어 대전 기능을 쓸 수 없어요';render();return false}return true}
@@ -706,7 +712,7 @@ sheets.t48={
     if(!T.b.some(v=>v))t48New();
     const rows=[[hd('항목',1,'c'),hd('1분기',1,'c'),hd('2분기',1,'c'),hd('3분기',1,'c'),hd('4분기',1,'c'),'',hd('합계',1,'c'),txt(fmt(T.score),1,'r b')]];
     const lab=['인건비','운영비','사업비','예비비'];
-    for(let y=0;y<4;y++){const r=[txt(lab[y],1,'c')];for(let x=0;x<4;x++){const v=T.b[y*4+x];r.push({v:v?fmt(v):'',c:'r big',a:' style="height:50px;'+heat(v)+'"'})}
+    for(let y=0;y<4;y++){const r=[txt(lab[y],1,'c')];for(let x=0;x<4;x++){const v=T.b[y*4+x];r.push({v:v?fmt(v):'',c:'r big',a:' data-b="1" style="height:50px;'+heat(v)+'"'})}
       if(y===0)r.push('',hd('최고',1,'c'),txt(fmt(T.best),1,'r'));rows.push(r)}
     rows.push([]);
     rows.push([txt(T.over?'더 이상 이동 불가':'방향키 / WASD 로 이동',4,'mute'),btn('새로 계산','new',1)]);
@@ -739,7 +745,7 @@ sheets.tet={
     const cells=TT.b.slice();if(TT.p&&TT.on)TT.p.m.forEach((r,y)=>r.forEach((v,x)=>{const Y=TT.p.y+y;if(v&&Y>=0)cells[Y*TW+TT.p.x+x]=TT.p.k}));
     const rows=[[hd('배치 점수',3),hd(fmt(TT.score),2,'r'),hd('처리',2),hd(TT.lines,1,'r'),hd('단계',1),hd(TT.lv,1,'r'),'',hd('다음',1),'','',hd('최고',1),txt(fmt(TT.best),1,'r')]];
     const nm=TT.next?SHAPES[TT.next]:null;
-    for(let y=0;y<TH;y++){const r=[];for(let x=0;x<TW;x++){const k=cells[y*TW+x];r.push({v:'',c:'',a:k?' style="background:'+TCOL[k]+';border-color:#fff"':''})}
+    for(let y=0;y<TH;y++){const r=[];for(let x=0;x<TW;x++){const k=cells[y*TW+x];r.push({v:'',c:'',a:' data-b="1"'+(k?' style="background:'+TCOL[k]+';border-color:#fff"':'')})}
       r.push('');
       for(let x=0;x<4;x++){const on=nm&&y>=1&&y<=4&&nm[y-1]&&nm[y-1][x];r.push({v:'',a:on?' style="background:'+TCOL[TT.next]+';border-color:#fff"':''})}
       if(y===7)r.push(txt(TT.over?'배치 불가 (종료)':TT.paused?'일시정지 — P':TT.on?'진행 중':'',2,'mute'));
@@ -781,9 +787,9 @@ sheets.snake={
     const pos={};SN.body.forEach((b,k)=>pos[b]=k);
     const rows=[[hd('동선 길이',3),hd(SN.body.length,2,'r'),hd('확보',2),hd(SN.score,2,'r'),hd('최고',2),hd(SN.best,2,'r'),hd(SN.over?'동선 충돌 (종료)':SN.paused?'일시정지 — P':SN.on?'분석 중':'',9)]];
     for(let y=0;y<SH;y++){const r=[];for(let x=0;x<SW;x++){const i=y*SW+x;
-      if(pos[i]!=null)r.push({v:pos[i]===0?'■':'',c:'c fill',a:pos[i]===0?' style="background:#a9d08e;color:#375623"':''});
-      else if(i===SN.food)r.push({v:'◆',c:'c',a:' style="color:#c55a11"'});
-      else r.push('')}rows.push(r)}
+      if(pos[i]!=null)r.push({v:pos[i]===0?'■':'',c:'c fill',a:' data-b="1"'+(pos[i]===0?' style="background:#a9d08e;color:#375623"':'')});
+      else if(i===SN.food)r.push({v:'◆',c:'c',a:' data-b="1" style="color:#c55a11"'});
+      else r.push({v:'',a:' data-b="1"'})}rows.push(r)}
     rows.push([]);
     rows.push([btn(SN.on?'다시 시작':'분석 시작','new',4),btn(SN.paused?'계속':'일시정지','pause',3),txt('방향키 / WASD 로 이동, P 일시정지',12,'mute')]);
     wrap.innerHTML=table(new Array(SW).fill(22),rows,'',2);
@@ -798,7 +804,13 @@ sheets.snake={
 };
 
 /* ================= 이동/키 ================= */
-function render(){sheets[S.sheet].render();curCell=null;status()}
+function frameBoard(){wrap.querySelectorAll('.bframe').forEach(x=>x.remove());const cs=wrap.querySelectorAll('td[data-i],td[data-b]');if(!cs.length)return;
+  const wr=wrap.getBoundingClientRect();let l=1e9,t=1e9,r=-1e9,b=-1e9;
+  cs.forEach(c=>{const q=c.getBoundingClientRect();if(q.left<l)l=q.left;if(q.top<t)t=q.top;if(q.right>r)r=q.right;if(q.bottom>b)b=q.bottom});
+  const f=document.createElement('div');f.className='bframe';
+  f.style.cssText='left:'+(l-wr.left+wrap.scrollLeft-1)+'px;top:'+(t-wr.top+wrap.scrollTop-1)+'px;width:'+(r-l+2)+'px;height:'+(b-t+2)+'px';
+  wrap.appendChild(f)}
+function render(){sheets[S.sheet].render();frameBoard();curCell=null;status()}
 function go(s){
   if(!sheets[s])return;
   const cur=sheets[S.sheet];if(cur.leave)cur.leave();
@@ -840,7 +852,7 @@ function askNick(force){mustNick=!!force;
   if(force){$('#dlgNo').style.display='none';$('#dlgX').style.display='none'}}
 $('#mFile').addEventListener('click',()=>askNick(false));
 const HELP=[
- ['집행내역','채팅','위쪽 수식 입력줄(fx)에 쓰고 Enter'],
+ ['집행내역','채팅','위쪽 수식 입력줄(fx)에 쓰고 Enter. 24시간 지나면 자동 삭제, [초기화]로 전체 삭제'],
  ['검토표','오목','칸 클릭. 5개 먼저 잇기'],
  ['승인현황','오델로','표시된 칸 클릭. 돌을 끼워 뒤집기'],
  ['대조표','숫자야구','서로 다른 숫자 4자리 입력 후 Enter (S: 자리·숫자 일치, B: 숫자만 일치)'],
@@ -862,6 +874,8 @@ function showHelp(){$('#dlgT').textContent='도움말';$('.dlg').classList.add('
    '<b>시트별 조작</b><table>'+HELP.map(h=>'<tr><td>'+h[0]+'</td><td>'+h[1]+'</td><td>'+h[2]+'</td></tr>').join('')+'</table></div>';
   $('#dlgNo').style.display='none';$('#dlgX').style.display='';dlgCb=null;$('#dlgBg').style.display='flex'}
 $('#mHelp').addEventListener('click',showHelp);
+function confirmDlg(title,msg,cb){$('#dlgT').textContent=title;$('#dlgB').innerHTML='<div>'+esc(msg)+'</div>';
+  $('#dlgNo').style.display='';$('#dlgX').style.display='';dlgCb=()=>cb();$('#dlgBg').style.display='flex'}
 
 /* ---------- 백엔드: Firebase Realtime Database ---------- */
 const OFF_MSG='서버 연결 안 됨 — 파일 맨 위 FIREBASE_CONFIG 설정을 확인하세요.';
@@ -889,7 +903,7 @@ function init(){
   let first=true;
   FB.ref('xl/chat').orderByChild('ts').limitToLast(150).on('value',snap=>{
     clearTimeout(timer);S.chatState='ok';
-    const arr=[];snap.forEach(c=>{const v=c.val();if(v&&typeof v.text==='string')arr.push(Object.assign({id:c.key},v))});
+    const cut=Date.now()-864e5,arr=[];snap.forEach(c=>{const v=c.val();if(v&&typeof v.text==='string'&&!(v.ts<cut))arr.push(Object.assign({id:c.key},v))});
     const known=new Set(S.msgs.map(m=>m.id));const fresh=!first&&arr.some(m=>!known.has(m.id)&&m.uid!==S.uid);
     S.msgs=arr;first=false;
     if(S.sheet==='chat'){const d=fx.value;render();fx.value=d}
@@ -898,7 +912,7 @@ function init(){
   FB.ref('.info/connected').on('value',s=>{if(s.val())setPresence()});
   FB.ref('xl/online').on('value',s=>{const v=s.val()||{};S.online=Object.values(v).map(o=>o&&o.nick).filter(Boolean);status()});
   setTimeout(()=>{
-    const old=Date.now()-3*864e5;
+    const old=Date.now()-864e5;
     FB.ref('xl/chat').orderByChild('ts').endAt(old).limitToFirst(100).get().then(s=>{const up={};s.forEach(c=>{up[c.key]=null});if(Object.keys(up).length)FB.ref('xl/chat').update(up)}).catch(()=>{});
     FB.ref('xl/games').orderByChild('ts').endAt(Date.now()-864e5).limitToFirst(100).get().then(s=>{const up={};s.forEach(c=>{up[c.key]=null});if(Object.keys(up).length)FB.ref('xl/games').update(up)}).catch(()=>{});
   },4000);

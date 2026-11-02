@@ -77,6 +77,13 @@ td.given{font-weight:700}td.same{background:#eef5ff}
 .dlg button.pri{border-color:#1f6e43}
 .dlg .x{cursor:pointer;padding:0 4px}
 .dlg .tip{color:#777;font-size:11px;line-height:1.5}
+.dlg.wide{width:480px;max-width:calc(100vw - 32px)}
+.help{max-height:60vh;overflow:auto;line-height:1.6;color:#333}
+.help b{color:#1f6e43}
+.help table{border-collapse:collapse;width:100%;margin-top:4px}
+.help td{border:1px solid #e3e3e3;padding:3px 6px;vertical-align:top}
+.help td:first-child{white-space:nowrap;color:#1f6e43}
+.help td:nth-child(2){white-space:nowrap}
 </style>
 </head>
 <body>
@@ -89,7 +96,7 @@ td.given{font-weight:700}td.same{background:#eef5ff}
     <span>—　□　✕</span>
   </div>
   <div class="menu">
-    <span id="mFile" style="cursor:pointer">파일</span><span class="on">홈</span><span>삽입</span><span>페이지 레이아웃</span><span>수식</span><span>데이터</span><span>검토</span><span>보기</span><span>도움말</span>
+    <span id="mFile" style="cursor:pointer">파일</span><span class="on">홈</span><span>삽입</span><span>페이지 레이아웃</span><span>수식</span><span>데이터</span><span>검토</span><span>보기</span><span id="mHelp" style="cursor:pointer">도움말</span>
   </div>
   <div class="ribbon">
     <div class="grp"><div class="row"><span class="rb" style="font-size:20px">📋</span><div><div class="rb">✂ 잘라내기</div><div class="rb">⧉ 복사</div></div></div><div class="lbl">클립보드</div></div>
@@ -201,11 +208,11 @@ wrap.addEventListener('mousedown',e=>{
   }
   const sh=sheets[S.sheet];
   if(sh.down&&td.dataset.i!=null){sh.down(+td.dataset.i,e);e.preventDefault()}
-  if(e.button===2&&sh.ctx&&td.dataset.i!=null)sh.ctx(+td.dataset.i);
 });
 wrap.addEventListener('mouseover',e=>{const sh=sheets[S.sheet];if(!sh.over)return;const td=e.target.closest('td[data-i]');if(td)sh.over(+td.dataset.i)});
 document.addEventListener('mouseup',()=>{const sh=sheets[S.sheet];if(sh&&sh.up)sh.up()});
-wrap.addEventListener('contextmenu',e=>{if(sheets[S.sheet].ctx)e.preventDefault()});
+wrap.addEventListener('contextmenu',e=>{const sh=sheets[S.sheet];if(!sh.ctx)return;e.preventDefault();
+  const td=e.target.closest('td[data-i]');if(td)sh.ctx(+td.dataset.i)});
 wrap.addEventListener('click',e=>{
   const td=e.target.closest('td');if(!td)return;const sh=sheets[S.sheet];
   if(td.dataset.act&&sh.act)return sh.act(td.dataset.act,td);
@@ -823,8 +830,8 @@ function ask(title,tip,val,cb){$('#dlgT').textContent=title;
   $('#dlgNo').style.display='';$('#dlgX').style.display='';
   $('#dlgIn').value=val||'';dlgCb=cb;$('#dlgBg').style.display='flex';setTimeout(()=>$('#dlgIn').focus(),0);
   $('#dlgIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();okDlg()}})}
-function closeDlg(){$('#dlgBg').style.display='none';dlgCb=null}
-function okDlg(){const v=$('#dlgIn').value;const cb=dlgCb;closeDlg();if(cb)cb(v)}
+function closeDlg(){$('#dlgBg').style.display='none';$('.dlg').classList.remove('wide');dlgCb=null}
+function okDlg(){const i=$('#dlgIn');const v=i?i.value:'';const cb=dlgCb;closeDlg();if(cb)cb(v)}
 $('#dlgOk').onclick=okDlg;$('#dlgNo').onclick=closeDlg;$('#dlgX').onclick=()=>{if(!mustNick)closeDlg()};
 function askNick(force){mustNick=!!force;
   ask('사용자 이름',force?'처음 오셨네요. 채팅과 게임에 표시할 이름을 적어 주세요. (나중에 [파일] 메뉴에서 변경)':'집행내역의 "담당" 칸에 표시될 이름입니다.',S.nick,v=>{v=(v||'').trim().slice(0,12);
@@ -832,6 +839,29 @@ function askNick(force){mustNick=!!force;
     mustNick=false;S.nick=v;ls.set('xl_nick',v);if(typeof onNick==='function')onNick();render()});
   if(force){$('#dlgNo').style.display='none';$('#dlgX').style.display='none'}}
 $('#mFile').addEventListener('click',()=>askNick(false));
+const HELP=[
+ ['집행내역','채팅','위쪽 수식 입력줄(fx)에 쓰고 Enter'],
+ ['검토표','오목','칸 클릭. 5개 먼저 잇기'],
+ ['승인현황','오델로','표시된 칸 클릭. 돌을 끼워 뒤집기'],
+ ['대조표','숫자야구','서로 다른 숫자 4자리 입력 후 Enter (S: 자리·숫자 일치, B: 숫자만 일치)'],
+ ['체크리스트','빙고','숫자 칸 클릭해서 부르기'],
+ ['입력대장','타자 연습','보이는 문장을 수식 입력줄에 그대로 치고 Enter'],
+ ['정산표','사과게임','드래그로 합이 10인 범위 선택 (2분)'],
+ ['입력검증','스도쿠','칸 선택 후 1~9 입력, Del로 지우기, 방향키 이동'],
+ ['리스크점검','지뢰찾기','좌클릭 열기, 우클릭 표시(※), 열린 숫자 클릭 시 주변 열기'],
+ ['증감분석','2048','방향키 또는 WASD'],
+ ['배치현황','테트리스','←→ 이동, ↑ 회전, ↓ 내리기, Space 바로 놓기, P 일시정지'],
+ ['동선분석','스네이크','방향키 또는 WASD, P 일시정지']];
+function showHelp(){$('#dlgT').textContent='도움말';$('.dlg').classList.add('wide');
+  $('#dlgB').innerHTML='<div class="help">'+
+   '<b>기본</b><br>· 아래 시트 탭 하나가 게임 하나예요. 탭에 초록 점이 뜨면 새 채팅이 온 거예요.<br>'+
+   '· <b>Esc</b>: 급할 때 \'요약\' 시트로 숨기기. 한 번 더 누르면 원래 화면으로 돌아와요.<br>'+
+   '· <b>파일</b> 메뉴: 내 이름 바꾸기 · 오른쪽 아래 \'개수\'는 지금 접속한 사람 수예요.<br><br>'+
+   '<b>친구와 대전</b> (오목·오델로·숫자야구·빙고·타자)<br>· 한 명이 <b>협업 생성</b> → 나온 4자리 코드를 채팅으로 알려 주기 → 상대가 <b>코드로 참여</b>.<br>'+
+   '· 혼자 할 땐 \'새 ○○(AI)\' 버튼으로 컴퓨터와 해요.<br><br>'+
+   '<b>시트별 조작</b><table>'+HELP.map(h=>'<tr><td>'+h[0]+'</td><td>'+h[1]+'</td><td>'+h[2]+'</td></tr>').join('')+'</table></div>';
+  $('#dlgNo').style.display='none';$('#dlgX').style.display='';dlgCb=null;$('#dlgBg').style.display='flex'}
+$('#mHelp').addEventListener('click',showHelp);
 
 /* ---------- 백엔드: Firebase Realtime Database ---------- */
 const OFF_MSG='서버 연결 안 됨 — 파일 맨 위 FIREBASE_CONFIG 설정을 확인하세요.';

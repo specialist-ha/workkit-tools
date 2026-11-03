@@ -37,6 +37,9 @@ table.g th{background:#f3f3f3;color:#555;text-align:center;border-color:#d0d0d0;
 table.g td.rn{background:#f3f3f3;color:#555;text-align:center;border-color:#d0d0d0;position:sticky;left:0;z-index:1;font-size:11px}
 table.g th.corner{left:0;z-index:3}
 td.cur{outline:2px solid #1f6e43;outline-offset:-2px}
+.sel2{background:#bdd7ee}td.sunk{background:#c55a11;color:#fff}td.ngf{background:#305496}
+td.kkc{background:#595959;color:#fff;padding:0 3px}td.kkb{background:#7f7f7f}td.sgh{outline:2px solid #1f6e43;outline-offset:-2px}
+.tabs .nav span{cursor:pointer;padding:0 3px}.tabs .nav span:hover{color:#1f6e43}
 .bframe{position:absolute;pointer-events:none;border:2px solid #1f6e43;box-shadow:0 0 0 3px rgba(31,110,67,.12);z-index:1}
 td.hd{background:#ddebf7;font-weight:600}
 td.r{text-align:right}td.c{text-align:center}td.b{font-weight:600}
@@ -114,7 +117,7 @@ td.given{font-weight:700}td.same{background:#eef5ff}
   </div>
   <div id="wrap"></div>
   <div class="tabs" id="tabs">
-    <span class="nav">◀ ▶</span>
+    <span class="nav"><span id="tL">◀</span><span id="tR">▶</span></span>
     <div class="tab" data-s="sum">요약<i class="dot"></i></div>
     <div class="tab" data-s="chat">집행내역<i class="dot"></i></div>
     <div class="tab" data-s="omok">검토표<i class="dot"></i></div>
@@ -128,6 +131,14 @@ td.given{font-weight:700}td.same{background:#eef5ff}
     <div class="tab" data-s="t48">증감분석<i class="dot"></i></div>
     <div class="tab" data-s="tet">배치현황<i class="dot"></i></div>
     <div class="tab" data-s="snake">동선분석<i class="dot"></i></div>
+    <div class="tab" data-s="wc">용어정리<i class="dot"></i></div>
+    <div class="tab" data-s="bs">자산배치<i class="dot"></i></div>
+    <div class="tab" data-s="liar">결재선<i class="dot"></i></div>
+    <div class="tab" data-s="c4">적재현황<i class="dot"></i></div>
+    <div class="tab" data-s="nono">조건부서식<i class="dot"></i></div>
+    <div class="tab" data-s="kak">합계검증<i class="dot"></i></div>
+    <div class="tab" data-s="same">중복제거<i class="dot"></i></div>
+    <div class="tab" data-s="kw">코드검증<i class="dot"></i></div>
     <span class="plus">⊕</span>
   </div>
   <div class="status">
@@ -803,13 +814,361 @@ sheets.snake={
   leave(){if(SN.on&&!SN.paused){SN.paused=true;clearTimeout(SN.timer)}}
 };
 
+/* ================= 공통: 한글 ================= */
+const WL=('가방 가수 가위 가을 가족 가지 간식 감자 강물 강아지 개구리 거울 거미 겨울 결혼 경찰 계단 계란 고기 고래 고양이 고추 공기 공원 공책 과일 과학 교실 구두 구름 국수 군인 굴뚝 그림 그네 근육 기름 기린 기술 기차 김밥 김치 꽃잎 나라 나무 나비 낙타 날개 날씨 남자 냄비 냉장고 노래 노을 녹차 놀이 농구 누나 눈물 눈사람 다리 다람쥐 달력 달걀 담요 당근 대문 도로 도시 독서 돈가스 동물 동생 돼지 두부 딸기 땅콩 라면 레몬 로봇 마을 마음 만두 망치 매미 머리 메뉴 모래 모자 목도리 무지개 문어 물감 미소 바다 바람 바지 박수 반지 발톱 밤하늘 배추 버섯 버스 벽돌 별빛 병원 보리 보물 복숭아 볼펜 봄비 부모 부엌 비누 비행기 빗자루 빨래 사랑 사막 사슴 사자 사진 산책 상자 새우 생선 생일 서랍 선물 선생 설탕 세상 소금 소나무 소리 손님 수박 수영 숙제 숟가락 시계 시장 식당 신발 아기 아침 악어 안경 양말 양파 어깨 얼음 엄마 여름 여우 연필 열쇠 영화 오리 오이 옥수수 온도 우산 우유 운동 원숭이 유리 은행 음식 의자 이불 이야기 인형 일기 자전거 잠자리 장갑 장미 저녁 전화 접시 젓가락 정원 조개 종이 주사 주스 지갑 지구 지도 지하철 짜장면 참새 창문 채소 책상 천사 청소 초록 추억 축구 치즈 친구 칠판 카메라 커피 컴퓨터 코끼리 콩나물 크레용 타조 태양 토끼 토마토 통장 트럭 파도 파리 포도 표정 풍선 피아노 하늘 학교 한강 할머니 해바라기 햄버거 허리 형제 호랑이 호박 홍차 화분 회사 휴가 기억 기분 기자 리본 리듬 자리 자석 자연 차례 차표 사과 과자 수건 건물 물건 물병 병아리 아이 이름 이마 마술 술래 지붕 붕어 어부 부채 채널 지혜 혜성 성공 공부 부자 자두 두더지 지렁이 이빨 빨대 대나무 라디오 오징어 어항 항구 구멍 멍게 게임 임금 금요일 일요일 일출 출구 구슬 슬픔 장난 난로 로켓 연극 극장 장소 소풍 풍경 경기 기도 도장 장마 마차 차도 도토리 리더 더위 위치 치약 약국 국자 늑대 대학 학생 생각 각도 도마 마당 당나귀 귀신 신문 문구 두유 유령 영웅 웅덩이 이웃 웃음 음료 요리 리모컨 여자 역사 낙엽 노트 트럼펫 시소 소방차 차표 표지 지우개 개미 미술 술잔 잔디 디저트 트럭 사탕 탕수육 육지 지하 하마 마법 법원 원피스 스키 키위 위성 성격 격투 투수 수학 학원 원두 두꺼비 비밀 밀가루 루비 비빔밥 밥상 상추 추석 석유 유치원 원격 사또 또래 래프팅 가게 게시판 판사 사이다 다이아 아파트 트로피 피자 자장가 가로등 등대 대추 추리 리어카 카드 드럼 럼주 주머니 니트 고무 무대 대장 장군 군대 대화 화가 가면 면도 도자기 기타 타자 자막 막대 대포 포크 크림 림프 프린터 터널 널뛰기 기념 염소 소년 연기 기적 적금 금고 고향 향기 기와 와인 인사 사냥 냥이 이사 사계절 절벽 벽지 지팡이 이발 발목 목소리 리코더 더하기 기러기 기숙사 사다리 리터 터전 전기 기저귀 귀걸이 이불 불꽃 꽃병 병풍 풍차 차량 양초 초밥 밥솥 솥뚜껑 고속도로 로마 마라톤 톤수 수레 레슬링 링거 거북이 이슬 슬리퍼 퍼즐 즐거움 음악 악기 기계 계절 절약 약속 속도 도서관 관광 광장 장어 어린이 이자 자판기 기획').split(' ').filter(Boolean);
+const WLS=new Set(WL);
+const HG2=/^[가-힣]{2,6}$/;
+const jm=ch=>{const c=ch.charCodeAt(0)-0xAC00;return[c/588|0,((c%588)/28)|0,c%28]};
+const syl=(a,b,c)=>String.fromCharCode(0xAC00+a*588+b*28+c);
+function starts(ch){if(!ch)return[];const[c,j,k]=jm(ch),Y=[20,2,6,12,17,7],o=[ch];
+  if(c===5)o.push(syl(Y.includes(j)?11:2,j,k));if(c===2&&Y.includes(j))o.push(syl(11,j,k));return o}
+const CHO='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ',JUNG='ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ',JONG=['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const decomp=w=>[...w].flatMap(ch=>{const[a,b,c]=jm(ch);return c?[CHO[a],JUNG[b],JONG[c]]:[CHO[a],JUNG[b]]});
+function multiEnter(g,type,code,host,initData,onReady){
+  g.mode='net';g.code=code;g.d=null;g.r=NET.room(type,code);g.info=host?'생성 중...':'참여 중...';render();
+  const p=host?g.r.set(Object.assign({host:S.uid,players:{[S.uid]:{n:S.nick,t:Date.now()}}},initData)):
+    g.r.get().then(d=>{if(!d)throw new Error('none');if(!(d.players||{})[S.uid])return g.r.setPath('players/'+S.uid,{n:S.nick,t:Date.now()})});
+  p.then(()=>{g.info='';g.unsub=g.r.on(d=>{if(!d)return;g.d=d;if(onReady)onReady(d);if(S.sheet===g.sheet)render()})})
+   .catch(e=>{g.info=e&&e.message==='none'?'해당 코드 없음':'실패 (권한 확인)';render()})}
+const order=d=>Object.entries((d&&d.players)||{}).sort((a,b)=>(a[1].t||0)-(b[1].t||0)).map(e=>e[0]);
+const askCode=cb=>ask('협업 코드','참여할 코드 4자리를 입력하세요.','',v=>{v=(v||'').trim().toUpperCase();if(/^[A-Z0-9]{4}$/.test(v))cb(v)});
+
+/* ================= 끝말잇기 (용어정리) ================= */
+const WC={sheet:'wc',mode:'ai',words:[],winner:'',info:'',code:null,r:null,unsub:null,d:null};
+function wcNeed(list){const l=list[list.length-1];return l?starts(l.w.slice(-1)):[]}
+function wcCheck(list,w){if(!HG2.test(w))return '한글 2~6글자만 가능해요';
+  if(list.some(x=>x.w===w))return '이미 나온 단어예요';const n=wcNeed(list);if(n.length&&!n.includes(w[0]))return '\''+n.join('/')+'\'(으)로 시작해야 해요';return ''}
+function wcAI(){const used=new Set(WC.words.map(x=>x.w)),need=wcNeed(WC.words);
+  const c=WL.filter(w=>!used.has(w)&&need.includes(w[0]));
+  if(!c.length){WC.winner='me';WC.info='';render();return}
+  const good=c.filter(w=>WL.some(x=>!used.has(x)&&x!==w&&starts(w.slice(-1)).includes(x[0])));
+  const pick=(good.length&&Math.random()<.85?good:c)[Math.random()*(good.length&&Math.random()<.85?good:c).length|0];
+  WC.words.push({w:pick,n:'AI'});render()}
+sheets.wc={
+  render(){const rows=[];let st,list=WC.words,mine=false;
+    if(WC.mode==='ai'){st=WC.info||(WC.winner==='me'?'완료 (승리) — 상대가 이을 단어가 없어요':WC.winner==='ai'?'반려 (패배)':'내 차례');mine=!WC.winner;
+      rows.push([hd('정리 구분',2),hd('자동(AI)',2),hd('상태',1),hd(st,4)])}
+    else{const d=WC.d||{},pl=d.players||{},out=d.out||{};list=Array.isArray(d.words)?d.words:[];
+      const alive=order(d).filter(id=>!out[id]);mine=d.started&&!d.winner&&d.turn===S.uid;
+      st=WC.info||(d.winner?((pl[d.winner]||{}).n||'?')+' 승리':!d.started?'참가자 대기 — 코드 '+WC.code+(d.host===S.uid?' (2명 이상이면 [시작])':''):mine?'내 차례':((pl[d.turn]||{}).n||'?')+' 차례');
+      rows.push([hd('협업 '+WC.code,2),hd('참가 '+order(d).length+'명',2),hd('상태',1),hd(st,4)]);
+      rows.push([hd('참가자',2),txt(order(d).map(id=>(out[id]?'✕':id===d.turn&&!d.winner?'▶':'')+(pl[id].n||'?')).join(', '),7,'mute')])}
+    const need=wcNeed(list);
+    rows.push([hd('다음 시작',2),txt(need.length?need.join(' / '):'아무 단어',2,'b big'),txt(mine?'수식 입력줄에 단어 입력 후 Enter':'',5,'mute')]);
+    rows.push([]);rows.push([hd('번호',1,'c'),hd('용어',3),hd('담당',2)]);
+    list.forEach((x,i)=>rows.push([txt(i+1,1,'c mute'),txt(x.w,3,i===list.length-1?'b':''),txt(x.n||'',2,'mute')]));
+    rows.push([]);
+    rows.push([btn('새 정리(AI)','ai',2),btn('협업 생성','host',2),btn('코드로 참여','join',2),btn(WC.mode==='net'&&!(WC.d||{}).started?'시작':'포기','go',2)]);
+    wrap.innerHTML=table([50,70,70,70,70,70,70,70,70],rows,'',4);
+    wrap.scrollTop=wrap.scrollHeight},
+  enter(){setTimeout(()=>fx.focus(),0)},
+  submit(v){v=(v||'').trim();if(!v)return;
+    if(WC.mode==='ai'){if(WC.winner)return;const e=wcCheck(WC.words,v);if(e){WC.info=e;render();return}
+      WC.info='';WC.words.push({w:v,n:S.nick});fx.value='';render();setTimeout(()=>{if(WC.mode==='ai'&&!WC.winner)wcAI()},500);return}
+    const d=WC.d;if(!d||!d.started||d.winner||d.turn!==S.uid)return;const list=Array.isArray(d.words)?d.words:[];
+    const e=wcCheck(list,v);if(e){WC.info=e;render();return}WC.info='';fx.value='';
+    const al=order(d).filter(id=>!(d.out||{})[id]);const nx=al[(al.indexOf(S.uid)+1)%al.length];
+    WC.r.update({words:list.concat([{w:v,n:S.nick,u:S.uid}]),turn:nx}).catch(()=>{WC.info='저장 실패';render()})},
+  act(a){
+    if(a==='ai'){leaveRoom(WC);Object.assign(WC,{mode:'ai',words:[],winner:'',info:''});render();fx.focus()}
+    if(a==='host'){if(!needNet(WC))return;leaveRoom(WC);multiEnter(WC,'wc',code4(),true,{started:false,words:[],out:{},turn:'',winner:''})}
+    if(a==='join'){if(!needNet(WC))return;askCode(v=>{leaveRoom(WC);multiEnter(WC,'wc',v,false)})}
+    if(a==='go'){
+      if(WC.mode==='ai'){if(!WC.winner){WC.winner='ai';render()}return}
+      const d=WC.d;if(!d||d.winner)return;
+      if(!d.started){if(d.host!==S.uid||order(d).length<2){WC.info='방장이 2명 이상일 때 시작할 수 있어요';render();return}WC.r.update({started:true,turn:order(d)[0]});return}
+      const out=Object.assign({},d.out||{},{[S.uid]:true});const al=order(d).filter(id=>!out[id]);
+      const patch={['out']:out};if(al.length===1)patch.winner=al[0];else if(d.turn===S.uid){const all=order(d).filter(id=>!(d.out||{})[id]);patch.turn=all[(all.indexOf(S.uid)+1)%all.length]}
+      WC.r.update(patch).catch(()=>{})}
+  }
+};
+
+/* ================= 배틀십 (자산배치) ================= */
+const SHIPS=[5,4,3,3,2],BSN=10,SHIP_CELLS=17;
+function bsPlace(){for(;;){const b=Array(100).fill('.');let ok=true;
+  for(let s=0;s<SHIPS.length&&ok;s++){let placed=false;for(let t=0;t<200&&!placed;t++){const h=Math.random()<.5,L=SHIPS[s];
+    const x=Math.random()*(h?BSN-L+1:BSN)|0,y=Math.random()*(h?BSN:BSN-L+1)|0;const cells=[];for(let k=0;k<L;k++)cells.push(h?y*BSN+x+k:(y+k)*BSN+x);
+    if(cells.every(c=>b[c]==='.'&&!nbAll(c).some(q=>b[q]!=='.'))){cells.forEach(c=>b[c]=String(s));placed=true}}if(!placed)ok=false}
+  if(ok)return b.join('')}}
+function nbAll(i){const x=i%BSN,y=(i/BSN)|0,r=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const X=x+dx,Y=y+dy;if((dx||dy)&&X>=0&&Y>=0&&X<BSN&&Y<BSN)r.push(Y*BSN+X)}return r}
+const bsHits=(board,shots)=>shots.filter(i=>board[i]!=='.').length;
+const bsSunk=(board,shots,id)=>{for(let i=0;i<100;i++)if(board[i]===id&&!shots.includes(i))return false;return true};
+const BS={sheet:'bs',mode:'ai',mine:'',enemy:'',my:[],op:[],turn:'me',winner:'',info:'',code:null,r:null,unsub:null,d:null,me:1};
+function bsSolo(){Object.assign(BS,{mode:'ai',mine:bsPlace(),enemy:bsPlace(),my:[],op:[],turn:'me',winner:'',info:''})}
+bsSolo();
+function bsAIshot(){const sh=BS.op,b=BS.mine;
+  const open=sh.filter(i=>b[i]!=='.'&&!bsSunk(b,sh,b[i]));let cand=[];
+  if(open.length){if(open.length>1){const xs=open.map(i=>i%BSN),ys=open.map(i=>i/BSN|0);const hor=ys.every(y=>y===ys[0]),ver=xs.every(x=>x===xs[0]);
+      if(hor){const y=ys[0];cand=[y*BSN+Math.min(...xs)-1,y*BSN+Math.max(...xs)+1].filter(i=>(i/BSN|0)===y)}
+      else if(ver){const x=xs[0];cand=[(Math.min(...ys)-1)*BSN+x,(Math.max(...ys)+1)*BSN+x]}}
+    if(!cand.filter(i=>i>=0&&i<100&&!sh.includes(i)).length)open.forEach(i=>{const x=i%BSN;[i-BSN,i+BSN,x>0?i-1:-1,x<9?i+1:-1].forEach(q=>cand.push(q))})}
+  cand=cand.filter(i=>i>=0&&i<100&&!sh.includes(i));
+  if(!cand.length){for(let i=0;i<100;i++)if(!sh.includes(i)&&((i%BSN)+(i/BSN|0))%2===0)cand.push(i);if(!cand.length)for(let i=0;i<100;i++)if(!sh.includes(i))cand.push(i)}
+  return cand[Math.random()*cand.length|0]}
+function bsFire(i){
+  if(BS.mode==='ai'){if(BS.winner||BS.turn!=='me'||BS.my.includes(i))return;BS.my.push(i);
+    if(bsHits(BS.enemy,BS.my)===SHIP_CELLS){BS.winner='me';render();return}
+    BS.turn='ai';render();setTimeout(()=>{if(BS.mode!=='ai'||BS.winner)return;BS.op.push(bsAIshot());if(bsHits(BS.mine,BS.op)===SHIP_CELLS)BS.winner='ai';BS.turn='me';render()},500);return}
+  const d=BS.d;if(!d||!(d.p1&&d.p2)||d.winner||d.turn!==BS.me)return;const k='sh'+BS.me,shots=Array.isArray(d[k])?d[k]:[];if(shots.includes(i))return;
+  const ns=shots.concat([i]),opB=d['b'+(BS.me===1?2:1)];
+  BS.r.update({[k]:ns,turn:BS.me===1?2:1,winner:bsHits(opB,ns)===SHIP_CELLS?BS.me:0}).catch(()=>{BS.info='저장 실패';render()})}
+function bsSub(){BS.unsub=BS.r.on(d=>{if(!d)return;BS.d=d;BS.info='';if(S.sheet==='bs')render()})}
+sheets.bs={
+  render(){let mine=BS.mine,enemy=BS.enemy,my=BS.my,op=BS.op,st,label;
+    if(BS.mode==='ai'){label='자동(AI)';st=BS.winner==='me'?'점검 완료 (승리)':BS.winner==='ai'?'자산 손실 (패배)':BS.turn==='me'?'내 차례 — 오른쪽 표 클릭 또는 C7 입력':'상대 점검 중'}
+    else{const d=BS.d||{},o=BS.me===1?2:1;mine=d['b'+BS.me]||'';enemy=d['b'+o]||'.'.repeat(100);my=Array.isArray(d['sh'+BS.me])?d['sh'+BS.me]:[];op=Array.isArray(d['sh'+o])?d['sh'+o]:[];
+      label='협업 '+BS.code+(d['n'+o]?' · '+d['n'+o]:'');
+      st=BS.info||(!(d.p1&&d.p2)?'상대 대기 — 코드 '+BS.code:d.winner?(d.winner===BS.me?'점검 완료 (승리)':'자산 손실 (패배)'):d.turn===BS.me?'내 차례 — 오른쪽 표 클릭 또는 C7 입력':'상대 점검 중')}
+    const L='ABCDEFGHIJ';const rows=[[hd('배치 구분',4),hd(label,6),txt('',1),hd('상태',3),hd(st,8)]];
+    rows.push([txt('',1),txt('▼ 우리 자산 (상대가 노리는 곳)',10,'mute'),txt('',2),txt('▼ 상대 자산 (여기를 클릭)',10,'mute')]);
+    rows.push([txt('',1),...[...L].map(c=>hd(c,1,'c')),txt('',2),...[...L].map(c=>hd(c,1,'c'))]);
+    for(let y=0;y<BSN;y++){const r=[hd(y+1,1,'c')];
+      for(let x=0;x<BSN;x++){const i=y*BSN+x,s=mine[i]&&mine[i]!=='.',h=op.includes(i);
+        r.push({v:h?(s?'✕':'·'):'',c:'cell'+(s?(h?' boom':' sel2'):''),a:' data-b="1" data-g="m"'})}
+      r.push(txt('',1),hd(y+1,1,'c'));
+      for(let x=0;x<BSN;x++){const i=y*BSN+x,h=my.includes(i),s=enemy[i]&&enemy[i]!=='.';const sunk=h&&s&&bsSunk(enemy,my,enemy[i]);
+        r.push({v:h?(s?'●':'·'):'',c:'cell'+(h&&s?(sunk?' sunk':' boom'):h?' gray':''),a:' data-i="'+i+'" data-g="e"'})}
+      rows.push(r)}
+    const sunkN=new Set([...enemy].map((c,i)=>c!=='.'&&my.includes(i)&&bsSunk(enemy,my,c)?c:null).filter(x=>x)).size;
+    rows.push([]);rows.push([txt('',1),hd('상대 피해',2),txt(bsHits(mine,op)+'/'+SHIP_CELLS,2,'r'),txt('',8),hd('명중',2),txt(bsHits(enemy,my)+'/'+SHIP_CELLS,2,'r'),hd('격침',2),txt(sunkN+'/5',2,'r')]);
+    rows.push([]);rows.push([txt('',1),btn('새 배치(AI)','ai',3),btn('다시 배치','re',3),btn('협업 생성','host',3),btn('코드로 참여','join',3)]);
+    wrap.innerHTML=table(Array(23).fill(24).map((w,i)=>i===0?28:i===11?16:w),rows,'',2)},
+  cell(i){bsFire(i)},
+  enter(){setTimeout(()=>fx.focus(),0)},
+  submit(v){const m=/^\s*([A-Ja-j])\s*(10|[1-9])\s*$/.exec(v||'');if(!m)return;fx.value='';bsFire((+m[2]-1)*BSN+'ABCDEFGHIJ'.indexOf(m[1].toUpperCase()))},
+  act(a){
+    if(a==='ai'){leaveRoom(BS);bsSolo();render()}
+    if(a==='re'){if(BS.mode==='ai'&&!BS.my.length&&!BS.op.length){BS.mine=bsPlace();render()}else{BS.info='첫 공격 전, AI 대전에서만 가능해요';render();setTimeout(()=>{BS.info='';render()},1500)}}
+    if(a==='host'){if(!needNet(BS))return;leaveRoom(BS);const code=code4();Object.assign(BS,{mode:'net',code,me:1,d:null,info:'생성 중...'});BS.r=NET.room('bs',code);render();
+      BS.r.set({p1:S.uid,n1:S.nick,b1:bsPlace(),p2:'',n2:'',b2:'',sh1:[],sh2:[],turn:1,winner:0}).then(()=>{BS.info='';bsSub()}).catch(()=>{BS.info='생성 실패 (권한 확인)';render()})}
+    if(a==='join')ask('협업 코드','참여할 코드 4자리를 입력하세요.','',v=>twoPlayerJoin(BS,'bs',v,(seat,d,patch)=>{BS.me=seat;BS.d=d;
+      if(patch)patch.b2=bsPlace();(patch?BS.r.update(patch):Promise.resolve()).then(bsSub).catch(()=>{BS.info='참여 실패 (권한 확인)';render()})}));
+  }
+};
+
+/* ================= 라이어 게임 (결재선) ================= */
+const LCAT={'음식':['김치찌개','떡볶이','삼겹살','짜장면','초밥','피자','라면','비빔밥','치킨','햄버거','냉면','김밥','순대','마라탕','돈가스'],
+  '동물':['호랑이','기린','펭귄','코끼리','고양이','강아지','토끼','판다','캥거루','상어','독수리','다람쥐','하마','여우','낙타'],
+  '장소':['도서관','병원','공항','편의점','놀이공원','영화관','찜질방','PC방','수영장','학교','지하철역','캠핑장','노래방','헬스장','카페'],
+  '직업':['소방관','의사','요리사','경찰','선생님','유튜버','택배기사','변호사','미용사','군인','가수','농부','기자','파일럿','약사'],
+  '물건':['우산','냉장고','칫솔','노트북','안경','휴대폰','이어폰','베개','가위','지갑','시계','마스크','선풍기','텀블러','리모컨'],
+  '스포츠':['축구','야구','농구','배구','탁구','볼링','골프','수영','테니스','스키','태권도','당구','배드민턴','마라톤','클라이밍']};
+const LI={sheet:'liar',mode:'none',info:'',code:null,r:null,unsub:null,d:null};
+function liResult(d){const mem=d.mem||[],v=d.votes||{};if(!mem.length||mem.some(id=>!v[id]))return null;
+  const cnt={};mem.forEach(id=>{cnt[v[id]]=(cnt[v[id]]||0)+1});const mx=Math.max(...Object.values(cnt));const top=Object.keys(cnt).filter(k=>cnt[k]===mx);
+  return{cnt,caught:top.length===1&&top[0]===d.liar,top}}
+sheets.liar={
+  render(){const rows=[];const d=LI.d||{},pl=d.players||{},nm=id=>(pl[id]||{}).n||'?';
+    if(LI.mode!=='net'){
+      rows.push([hd('결재선',2),hd('대기',2),hd('상태',1),hd(LI.info||'3명 이상 모여서 하는 게임 — 협업 생성 또는 코드로 참여',6)]);rows.push([]);
+      ['방장이 [협업 생성] → 코드를 채팅으로 공유 → 친구들은 [코드로 참여]','방장이 [새 결재]를 누르면 한 명만 라이어가 되고, 나머지는 같은 제시어를 받아요','각자 수식 입력줄에 제시어 설명을 한 줄씩 남겨요 (라이어는 눈치껏)','이름 칸을 눌러 라이어로 의심되는 사람에게 투표해요','라이어가 잡히면 라이어가 제시어를 맞혀 역전할 기회가 있어요'].forEach((t,i)=>rows.push([txt(i+1,1,'c mute'),txt(t,10)]));
+    }else{
+      const mem=d.mem||[],inR=mem.includes(S.uid),res=d.phase==='play'?liResult(d):null,me=S.uid===d.liar;
+      let st=LI.info||(d.phase!=='play'?'참가자 '+order(d).length+'명 — 코드 '+LI.code+(d.host===S.uid?' (3명 이상이면 [새 결재])':' · 방장 대기'):!inR?'관전 중 (다음 판부터 참여)':!res?(d.votes&&d.votes[S.uid]?'투표 완료 — 다른 사람 기다리는 중':'설명 남기고 투표하세요'):'결과 공개');
+      rows.push([hd('협업 '+LI.code,2),hd(d.round?d.round+'차 결재':'대기',2),hd('상태',1),hd(st,6)]);rows.push([]);
+      if(d.phase==='play'){
+        if(inR)rows.push([hd('내 문서',2),me?txt('당신은 라이어! 분류: '+d.cat,9,'b red big'):txt('분류: '+d.cat+'  ·  제시어: '+d.word,9,'b big')]);
+        rows.push([]);rows.push([hd('결재자',2,'c'),hd('의견(설명)',6),hd('득표',1,'c'),hd('비고',2,'c')]);
+        mem.forEach((id,k)=>{const hint=(d.hints||{})[id]||'';const votes=res?(res.cnt[id]||0):'';const mark=res&&id===d.liar?'라이어':((d.votes||{})[S.uid]===id?'내 선택':'');
+          rows.push([{v:nm(id),c:'cell'+(res&&id===d.liar?' boom':(d.votes||{})[S.uid]===id?' fill':''),a:' data-i="'+k+'"',span:2},txt(hint,6,hint?'':'mute'),txt(votes,1,'c b'),txt(mark,2,'c'+(mark==='라이어'?' red':''))])});
+        if(res){rows.push([]);
+          let out;if(!res.caught)out='라이어 승리 — 아무도 못 잡았어요 (제시어: '+d.word+')';
+          else if(!d.guess)out=me?'들켰어요! 수식 입력줄에 제시어를 맞혀 보세요':'라이어 검거! 라이어가 제시어를 맞히는 중...';
+          else out=d.guess===d.word?'라이어 역전승 — 제시어를 맞혔어요 ('+d.word+')':'시민 승리 — 라이어 답: '+d.guess+' / 정답: '+d.word;
+          rows.push([hd('결과',2),txt(out,9,'b')])}
+      }else{rows.push([hd('참가자',2),txt(order(d).map(nm).join(', '),9)])}
+    }
+    rows.push([]);rows.push([btn('협업 생성','host',2),btn('코드로 참여','join',2),btn('새 결재','start',2),btn('나가기','leave',2)]);
+    wrap.innerHTML=table([50,80,90,90,90,90,90,90,60,60,60],rows,'',4)},
+  enter(){setTimeout(()=>fx.focus(),0)},
+  cell(k){const d=LI.d;if(!d||d.phase!=='play')return;const mem=d.mem||[];if(!mem.includes(S.uid)||liResult(d))return;const t=mem[k];if(!t||t===S.uid)return;
+    LI.r.setPath('votes/'+S.uid,t).catch(()=>{})},
+  submit(v){v=(v||'').trim().slice(0,40);const d=LI.d;if(!v||!d||d.phase!=='play'||!(d.mem||[]).includes(S.uid))return;fx.value='';
+    const res=liResult(d);if(res){if(res.caught&&S.uid===d.liar&&!d.guess)LI.r.update({guess:v}).catch(()=>{});return}
+    LI.r.setPath('hints/'+S.uid,v).catch(()=>{})},
+  act(a){
+    if(a==='host'){if(!needNet(LI))return;leaveRoom(LI);multiEnter(LI,'liar',code4(),true,{phase:'lobby',round:0})}
+    if(a==='join'){if(!needNet(LI))return;askCode(v=>{leaveRoom(LI);multiEnter(LI,'liar',v,false)})}
+    if(a==='leave'){leaveRoom(LI);LI.mode='none';LI.d=null;render()}
+    if(a==='start'){const d=LI.d;if(!d)return;if(d.host!==S.uid){LI.info='방장만 시작할 수 있어요';render();setTimeout(()=>{LI.info='';render()},1500);return}
+      const mem=order(d);if(mem.length<3){LI.info='3명 이상 필요해요';render();setTimeout(()=>{LI.info='';render()},1500);return}
+      const cats=Object.keys(LCAT),cat=cats[Math.random()*cats.length|0],ws=LCAT[cat];
+      LI.r.update({phase:'play',round:(d.round||0)+1,cat,word:ws[Math.random()*ws.length|0],liar:mem[Math.random()*mem.length|0],mem,hints:null,votes:null,guess:''}).catch(()=>{})}
+  }
+};
+
+/* ================= 4목 (적재현황) ================= */
+const C4W=7,C4H=6;
+const C4={b:Array(42).fill('.'),turn:'B',me:'B',mode:'ai',winner:null,last:-1,win:[],code:null,r:null,unsub:null,ready:false,busy:false,info:'',opp:''};
+const c4At=(b,x,y)=>x<0||y<0||x>=C4W||y>=C4H?'#':b[y*C4W+x];
+function c4Drop(b,col){for(let y=C4H-1;y>=0;y--)if(b[y*C4W+col]==='.')return y*C4W+col;return -1}
+function c4Win(b,i){const p=b[i],x=i%C4W,y=(i/C4W)|0;for(const[dx,dy]of DIRS){const l=[i];
+  for(let k=1;c4At(b,x+dx*k,y+dy*k)===p;k++)l.push((y+dy*k)*C4W+x+dx*k);for(let k=1;c4At(b,x-dx*k,y-dy*k)===p;k++)l.push((y-dy*k)*C4W+x-dx*k);if(l.length>=4)return l}return null}
+function c4Eval(b,p){const o=p==='B'?'W':'B';let s=0;for(let y=0;y<C4H;y++)if(b[y*C4W+3]===p)s+=3;
+  for(let y=0;y<C4H;y++)for(let x=0;x<C4W;x++)for(const[dx,dy]of DIRS){const w=[];for(let k=0;k<4;k++)w.push(c4At(b,x+dx*k,y+dy*k));if(w.includes('#'))continue;
+    const m=w.filter(c=>c===p).length,e=w.filter(c=>c==='.').length,t=w.filter(c=>c===o).length;
+    if(m===3&&e===1)s+=5;else if(m===2&&e===2)s+=2;if(t===3&&e===1)s-=4}return s}
+function c4Neg(b,p,dep,al,be){const o=p==='B'?'W':'B';const cols=[3,2,4,1,5,0,6].filter(c=>c4Drop(b,c)>=0);if(!cols.length)return[0,-1];
+  let best=-1e9,bc=cols[0];for(const c of cols){const i=c4Drop(b,c);b[i]=p;let v;
+    if(c4Win(b,i))v=1e6+dep;else if(dep<=1)v=c4Eval(b,p);else v=-c4Neg(b,o,dep-1,-be,-al)[0];b[i]='.';
+    if(v>best){best=v;bc=c}if(best>al)al=best;if(al>=be)break}return[best,bc]}
+function c4Local(i,p){C4.b[i]=p;C4.last=i;const w=c4Win(C4.b,i);if(w){C4.winner=p;C4.win=w}else C4.turn=p==='B'?'W':'B';if(!C4.winner&&!C4.b.includes('.'))C4.winner='D'}
+function c4Reset(){C4.b=Array(42).fill('.');C4.turn='B';C4.winner=null;C4.last=-1;C4.win=[]}
+function c4Play(col){if(C4.winner||C4.busy)return;const i=c4Drop(C4.b,col);if(i<0)return;
+  if(C4.mode==='ai'){if(C4.turn!==C4.me)return;c4Local(i,C4.me);render();
+    if(!C4.winner){C4.busy=true;const ai=C4.me==='B'?'W':'B';setTimeout(()=>{const c=c4Neg(C4.b.slice(),ai,5,-1e9,1e9)[1];c4Local(c4Drop(C4.b,c),ai);C4.busy=false;render()},350)}return}
+  if(C4.r&&C4.ready&&C4.turn===C4.me){const b=C4.b.slice();b[i]=C4.me;const w=c4Win(b,i);C4.busy=true;
+    C4.r.update({board:b.join(''),turn:C4.me==='B'?'W':'B',last:i,winner:w?C4.me:(b.includes('.')?'':'D'),win:w||[]}).catch(()=>{C4.info='저장 실패'}).finally(()=>{C4.busy=false;render()})}}
+function c4Sub(){C4.unsub=C4.r.on(d=>{if(!d)return;C4.b=String(d.board||'').padEnd(42,'.').slice(0,42).split('');C4.turn=d.turn;C4.last=d.last==null?-1:d.last;
+  C4.winner=d.winner||null;C4.win=Array.isArray(d.win)?d.win:[];C4.ready=!!(d.p1&&d.p2);C4.info='';C4.opp=C4.me==='B'?d.n2:d.n1;if(S.sheet==='c4')render()})}
+sheets.c4={
+  render(){let st;const mk=p=>p==='B'?'<span style="color:#c00000">●</span>':'<span style="color:#d4a017">●</span>';
+    if(C4.info)st=C4.info;else if(C4.mode==='net'&&!C4.ready)st='상대 대기 — 코드 '+C4.code;else if(C4.winner==='D')st='무승부';
+    else if(C4.winner)st=C4.winner===C4.me?'적재 완료 (승리)':'적재 실패 (패배)';else st=C4.turn===C4.me?'내 차례 — 열을 클릭':'상대 적재 중';
+    const rows=[[hd('적재 구분',2),hd(C4.mode==='ai'?'자동(AI)':'협업 '+C4.code+(C4.opp?' · '+C4.opp:''),3),hd('상태',1),hd(st,4)]];
+    rows.push([hd('내 색',2),{v:mk(C4.me),raw:1,c:'c'},txt('',7)]);
+    for(let y=0;y<C4H;y++){const r=[''];for(let x=0;x<C4W;x++){const i=y*C4W+x,p=C4.b[i];
+      r.push({v:p==='.'?'':mk(p),raw:1,c:'cell big'+(C4.win.includes(i)?' fill':i===C4.last?' hl':''),a:' data-i="'+i+'" style="height:36px"'})}rows.push(r)}
+    rows.push([]);rows.push([btn('새 적재(AI)','ai',2),btn('선/후 바꾸기','swap',2),btn('협업 생성','host',2),btn('코드로 참여','join',2)]);
+    wrap.innerHTML=table([50,40,40,40,40,40,40,40,90,90],rows,'')},
+  cell(i){c4Play(i%C4W)},
+  act(a){
+    if(a==='ai'){leaveRoom(C4);C4.mode='ai';C4.info='';c4Reset();if(C4.me==='W')c4Local(38,'B');render()}
+    if(a==='swap'){if(C4.mode!=='ai')return;C4.me=C4.me==='B'?'W':'B';c4Reset();if(C4.me==='W')c4Local(38,'B');render()}
+    if(a==='host'){if(!needNet(C4))return;leaveRoom(C4);const code=code4();C4.mode='net';C4.code=code;C4.me='B';C4.opp='';c4Reset();C4.r=NET.room('c4',code);C4.info='생성 중...';render();
+      C4.r.set({board:'.'.repeat(42),turn:'B',p1:S.uid,n1:S.nick,p2:'',n2:'',last:-1,winner:'',win:[]}).then(()=>{C4.info='';c4Sub()}).catch(()=>{C4.info='생성 실패 (권한 확인)';render()})}
+    if(a==='join')ask('협업 코드','참여할 코드 4자리를 입력하세요.','',v=>twoPlayerJoin(C4,'c4',v,(seat,d,patch)=>{C4.me=seat===1?'B':'W';
+      (patch?C4.r.update(patch):Promise.resolve()).then(c4Sub).catch(()=>{C4.info='참여 실패 (권한 확인)';render()})}));
+  }
+};
+
+/* ================= 노노그램 (조건부서식) ================= */
+const NG={n:10,sol:[],v:[],done:false,t0:0,paint:null};
+const runs=a=>{const r=[];let c=0;a.forEach(x=>{if(x)c++;else if(c){r.push(c);c=0}});if(c)r.push(c);return r.length?r:[0]};
+function ngNew(n){if(n)NG.n=n;const N2=NG.n;NG.sol=Array.from({length:N2*N2},()=>Math.random()<.58?1:0);NG.v=Array(N2*N2).fill(0);NG.done=false;NG.t0=0;render()}
+const ngRow=(a,y)=>a.slice(y*NG.n,y*NG.n+NG.n),ngCol=(a,x)=>Array.from({length:NG.n},(_,y)=>a[y*NG.n+x]);
+const same=(a,b)=>a.length===b.length&&a.every((x,i)=>x===b[i]);
+function ngCheck(){const f=NG.v.map(x=>x===1?1:0);for(let k=0;k<NG.n;k++){if(!same(runs(ngRow(f,k)),runs(ngRow(NG.sol,k)))||!same(runs(ngCol(f,k)),runs(ngCol(NG.sol,k))))return}NG.done=true}
+function ngSet(i,val){if(NG.done||NG.v[i]===val)return;if(!NG.t0)NG.t0=Date.now();NG.v[i]=val;ngCheck();render()}
+sheets.nono={
+  render(){if(!NG.sol.length){ngNew(10);return}const n=NG.n,f=NG.v.map(x=>x===1?1:0);
+    const rc=Array.from({length:n},(_,y)=>runs(ngRow(NG.sol,y))),cc=Array.from({length:n},(_,x)=>runs(ngCol(NG.sol,x)));
+    const L=Math.max(...rc.map(r=>r.length)),K=Math.max(...cc.map(c=>c.length));const rows=[];
+    rows.push([hd('서식 규칙',Math.max(2,L)),hd(n+'×'+n,3,'c'),hd('상태',2),hd(NG.done?'적용 완료 ('+Math.round((Date.now()-NG.t0)/1000)+'초)':'적용 중',Math.max(3,n-3))]);
+    for(let k=0;k<K;k++){const r=Array.from({length:L},()=>txt(''));cc.forEach((c,x)=>{const ok=same(runs(ngCol(f,x)),c);const v=c[c.length-K+k];r.push(txt(v==null?'':v,1,'c '+(ok?'mute':'b')))});rows.push(r)}
+    for(let y=0;y<n;y++){const ok=same(runs(ngRow(f,y)),rc[y]);const r=Array.from({length:L},(_,k)=>{const v=rc[y][rc[y].length-L+k];return txt(v==null?'':v,1,'c '+(ok?'mute':'b'))});
+      for(let x=0;x<n;x++){const i=y*n+x,s=NG.v[i];r.push({v:s===2?'×':'',c:'cell'+(s===1?' ngf':s===2?' mute':''),a:' data-i="'+i+'" style="'+(x%5===4&&x<n-1?'border-right:2px solid #999;':'')+(y%5===4&&y<n-1?'border-bottom:2px solid #999;':'')+'"'})}
+      rows.push(r)}
+    rows.push([]);rows.push([btn('5×5','5',3),btn('10×10','10',3),btn('15×15','15',3)]);
+    rows.push([txt('좌클릭(드래그): 칠하기 · 우클릭(드래그): × 표시 · 숫자는 그 줄에 연속으로 칠할 칸 수',L+n,'mute')]);
+    wrap.innerHTML=table(Array(L+n).fill(24),rows,'',3)},
+  down(i,e){const cur=NG.v[i];const val=e.button===2?(cur===2?0:2):(cur===1?0:1);NG.paint=val;ngSet(i,val)},
+  over(i){if(NG.paint!=null)ngSet(i,NG.paint)},
+  up(){NG.paint=null},
+  ctx(){},
+  act(a){ngNew(+a)},
+  enter(){fx.blur()}
+};
+
+/* ================= 카쿠로 (합계검증) ================= */
+const KN=8;const KK={W:[],sol:[],v:[],sel:-1,done:false,clue:{}};
+function kkRuns(W){const R=[];for(let y=0;y<KN;y++)for(let x=0;x<KN;x++){const i=y*KN+x;if(W[i])continue;
+  if(x+1<KN&&W[i+1]){const c=[];for(let k=x+1;k<KN&&W[y*KN+k];k++)c.push(y*KN+k);R.push({at:i,d:'a',c})}
+  if(y+1<KN&&W[i+KN]){const c=[];for(let k=y+1;k<KN&&W[k*KN+x];k++)c.push(k*KN+x);R.push({at:i,d:'d',c})}}return R}
+function kkNew(){for(let t=0;t<500;t++){const W=Array(KN*KN).fill(false);for(let y=1;y<KN;y++)for(let x=1;x<KN;x++)W[y*KN+x]=true;
+    const nb=10+(Math.random()*6|0);for(let k=0;k<nb;k++){const y=1+(Math.random()*7|0),x=1+(Math.random()*7|0);W[y*KN+x]=false;W[(KN-y)*KN+(KN-x)]=false}
+    const R=kkRuns(W);const len={};R.forEach(r=>r.c.forEach(c=>{len[c]=(len[c]||0)+1}));
+    if(R.some(r=>r.c.length<2))continue;let bad=false;for(let i=0;i<KN*KN;i++)if(W[i]&&len[i]!==2)bad=true;if(bad)continue;
+    const cells=[];for(let i=0;i<KN*KN;i++)if(W[i])cells.push(i);if(cells.length<26)continue;
+    const runOf={};R.forEach(r=>r.c.forEach(c=>{(runOf[c]=runOf[c]||[]).push(r)}));const sol={};
+    const fill=k=>{if(k===cells.length)return true;const c=cells[k];const used=new Set();runOf[c].forEach(r=>r.c.forEach(q=>{if(sol[q])used.add(sol[q])}));
+      for(const d of shuffle([1,2,3,4,5,6,7,8,9])){if(used.has(d))continue;sol[c]=d;if(fill(k+1))return true}delete sol[c];return false};
+    if(!fill(0))continue;
+    KK.W=W;KK.sol=sol;KK.runs=R;KK.v={};KK.sel=cells[0];KK.done=false;KK.clue={};
+    R.forEach(r=>{(KK.clue[r.at]=KK.clue[r.at]||{})[r.d]=r.c.reduce((s,c)=>s+sol[c],0)});render();return}}
+function kkCheck(){const R=KK.runs;const st={};R.forEach(r=>{const vs=r.c.map(c=>KK.v[c]||0);const full=vs.every(x=>x);const dup=new Set(vs.filter(x=>x)).size!==vs.filter(x=>x).length;
+  const sum=vs.reduce((a,b)=>a+b,0),tgt=KK.clue[r.at][r.d];st[r.at+r.d]=dup||(full&&sum!==tgt)||sum>tgt?'bad':full?'ok':''});
+  KK.done=R.every(r=>st[r.at+r.d]==='ok');return st}
+sheets.kak={
+  render(){if(!KK.W.length){kkNew();return}const st=kkCheck();const rows=[[hd('검증 대상',3),hd('합계 일치',2),hd(KK.done?'검증 완료':'검증 중',3)]];
+    for(let y=0;y<KN;y++){const r=[];for(let x=0;x<KN;x++){const i=y*KN+x;
+      if(KK.W[i]){const v=KK.v[i]||'';r.push({v,c:'cell big'+(i===KK.sel?' asel':''),a:' data-i="'+i+'" style="height:36px"'})}
+      else{const c=KK.clue[i];if(c){const s=(k,ch)=>c[k]!=null?'<span style="color:'+(st[i+k]==='bad'?'#ff9b9b':st[i+k]==='ok'?'#9fd8a8':'#fff')+'">'+ch+c[k]+'</span>':'';
+          r.push({v:'<div style="font-size:10px;line-height:13px;text-align:right">'+s('a','→')+'</div><div style="font-size:10px;line-height:13px">'+s('d','↓')+'</div>',raw:1,c:'kkc',a:' data-b="1" style="height:36px"'})}
+        else r.push({v:'',c:'kkb',a:' data-b="1" style="height:36px"'})}}rows.push(r)}
+    rows.push([]);rows.push([btn('새 검증','new',3)]);rows.push([txt('칸 선택 후 1~9 입력, Del 지우기, 방향키 이동',8,'mute')]);rows.push([txt('→ 오른쪽 칸들의 합, ↓ 아래 칸들의 합 (한 줄에 같은 숫자 금지)',8,'mute')]);
+    wrap.innerHTML=table(Array(KN).fill(40),rows,'',3)},
+  cell(i){if(KK.W[i]){KK.sel=i;render()}},
+  key(e){const k=e.key;if(KK.sel<0)return;
+    if(/^[1-9]$/.test(k)){if(!KK.done){KK.v[KK.sel]=+k;render()}e.preventDefault();return}
+    if(k==='Backspace'||k==='Delete'||k==='0'){if(!KK.done){delete KK.v[KK.sel];render()}e.preventDefault();return}
+    const mv={ArrowLeft:-1,ArrowRight:1,ArrowUp:-KN,ArrowDown:KN}[k];if(mv){let n=KK.sel+mv;while(n>=0&&n<KN*KN&&!KK.W[n]&&!(Math.abs(mv)===1&&(n/KN|0)!==(KK.sel/KN|0)))n+=mv;
+      if(n>=0&&n<KN*KN&&KK.W[n]&&!(Math.abs(mv)===1&&(n/KN|0)!==(KK.sel/KN|0)))KK.sel=n;render();e.preventDefault()}},
+  act(){kkNew()},
+  enter(){fx.blur()}
+};
+
+/* ================= 같은 색 지우기 (중복제거) ================= */
+const SGC=['#f8cbad','#c6e0b4','#bdd7ee','#ffe699'],SGW=15,SGH=10;
+const SG={v:[],score:0,best:+(ls.get('xl_sg')||0),over:false};
+function sgNew(){SG.v=Array.from({length:SGW*SGH},()=>Math.random()*4|0);SG.score=0;SG.over=false;render()}
+function sgGroup(i){const c=SG.v[i];if(c<0)return[];const seen=new Set([i]),st=[i];while(st.length){const j=st.pop(),x=j%SGW;
+  [j-SGW,j+SGW,x>0?j-1:-1,x<SGW-1?j+1:-1].forEach(q=>{if(q>=0&&q<SGW*SGH&&!seen.has(q)&&SG.v[q]===c){seen.add(q);st.push(q)}})}return[...seen]}
+function sgCollapse(){const cols=[];for(let x=0;x<SGW;x++){const col=[];for(let y=SGH-1;y>=0;y--){const v=SG.v[y*SGW+x];if(v>=0)col.push(v)}if(col.length)cols.push(col)}
+  SG.v=Array(SGW*SGH).fill(-1);cols.forEach((col,x)=>col.forEach((v,k)=>{SG.v[(SGH-1-k)*SGW+x]=v}))}
+function sgEnd(){for(let i=0;i<SG.v.length;i++)if(SG.v[i]>=0&&sgGroup(i).length>1)return;SG.over=true;
+  if(SG.v.every(v=>v<0))SG.score+=1000;if(SG.score>SG.best){SG.best=SG.score;ls.set('xl_sg',SG.score)}}
+sheets.same={
+  render(){if(!SG.v.length){sgNew();return}const left=SG.v.filter(v=>v>=0).length;
+    const rows=[[hd('중복 항목',3),hd(left,2,'r'),hd('정리 점수',3),hd(fmt(SG.score),2,'r'),hd('최고',2),hd(fmt(SG.best),3,'r')]];
+    for(let y=0;y<SGH;y++){const r=[];for(let x=0;x<SGW;x++){const i=y*SGW+x,v=SG.v[i];r.push({v:'',c:'cell',a:' data-i="'+i+'"'+(v>=0?' style="background:'+SGC[v]+';border-color:#fff"':'')})}rows.push(r)}
+    rows.push([]);rows.push([btn('새로 정리','new',4),txt(SG.over?(left?'더 지울 수 있는 묶음이 없어요 (종료)':'전부 정리! +1,000'):'같은 색 2칸 이상 붙은 묶음 클릭 — 크게 지울수록 점수 ↑',11,'mute')]);
+    wrap.innerHTML=table(Array(SGW).fill(26),rows,'',3)},
+  cell(i){if(SG.over)return;const g=sgGroup(i);if(g.length<2)return;g.forEach(j=>SG.v[j]=-1);SG.score+=(g.length-1)*(g.length-1);sgCollapse();sgEnd();render()},
+  over(i){wrap.querySelectorAll('td.sgh').forEach(t=>t.classList.remove('sgh'));if(SG.over)return;const g=sgGroup(i);if(g.length<2)return;
+    g.forEach(j=>{const t=wrap.querySelector('td[data-i="'+j+'"]');if(t)t.classList.add('sgh')})},
+  act(){sgNew()},
+  enter(){fx.blur()}
+};
+
+/* ================= 한글 워들 (코드검증) ================= */
+const KWA=[...new Set(WL)].filter(w=>w.length===2&&decomp(w).length===5);
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
+const KW={ans:'',daily:true,g:[],done:false,info:''};
+function kwStart(daily){KW.daily=daily;KW.g=[];KW.done=false;KW.info='';
+  KW.ans=daily?KWA[hash('kw'+today())%KWA.length]:KWA[Math.random()*KWA.length|0];
+  if(daily){try{const s=JSON.parse(ls.get('xl_kw_'+today())||'null');if(s&&Array.isArray(s.g)){KW.g=s.g;KW.done=s.done}}catch(e){}}render()}
+function kwScore(g,a){const r=Array(5).fill('x'),cnt={};a.forEach((c,i)=>{if(g[i]===c)r[i]='g';else cnt[c]=(cnt[c]||0)+1});
+  g.forEach((c,i)=>{if(r[i]!=='g'&&cnt[c]){r[i]='y';cnt[c]--}});return r}
+sheets.kw={
+  render(){if(!KW.ans){kwStart(true);return}const a=decomp(KW.ans);const win=KW.g.length&&KW.g[KW.g.length-1]===KW.ans;
+    const st=KW.info||(win?'검증 성공 ('+KW.g.length+'/6)':KW.done?'검증 실패 — 정답: '+KW.ans:'2글자 단어 입력 후 Enter ('+KW.g.length+'/6)');
+    const rows=[[hd('검증 코드',2),hd(KW.daily?'오늘의 문제':'연습',2),hd('상태',1),hd(st,6)]];rows.push([]);
+    const col={g:'#c6efce',y:'#ffeb9c',x:'#d9d9d9'},fc={g:'#006100',y:'#9c5700',x:'#595959'};const used={};
+    for(let k=0;k<6;k++){const r=[txt(k+1,1,'c mute')];const w=KW.g[k];
+      if(w){const d=decomp(w),s=kwScore(d,a);d.forEach((c,i)=>{const pr={g:3,y:2,x:1};if(!used[c]||pr[s[i]]>pr[used[c]])used[c]=s[i];
+          r.push({v:c,c:'cell big b',a:' data-b="1" style="height:36px;background:'+col[s[i]]+';color:'+fc[s[i]]+'"'})});r.push(txt('',1),txt(w,2,'mute'))}
+      else for(let i=0;i<5;i++)r.push({v:'',c:'cell',a:' data-b="1" style="height:36px"'});
+      rows.push(r)}
+    rows.push([]);const grp=t=>Object.keys(used).filter(c=>used[c]===t).join(' ')||'-';
+    rows.push([hd('위치 일치',2),txt(grp('g'),9)]);rows.push([hd('포함',2),txt(grp('y'),9)]);rows.push([hd('없음',2),txt(grp('x'),9,'mute')]);
+    rows.push([]);rows.push([btn('오늘의 문제','daily',2),btn('연습 문제','prac',2),txt('2글자 단어를 자음·모음으로 나눠 5칸 (예: 사랑 → ㅅㅏㄹㅏㅇ). 초록=자리까지 맞음, 노랑=들어 있음',7,'mute')]);
+    wrap.innerHTML=table([40,46,46,46,46,46,20,60,60,60,60],rows,'',3)},
+  enter(){setTimeout(()=>fx.focus(),0)},
+  submit(v){v=(v||'').trim();if(KW.done)return;if(!/^[가-힣]{2}$/.test(v)||decomp(v).length!==5){KW.info='받침 포함 자모 5개인 2글자 단어만 가능해요 (예: 사랑, 바람)';render();return}
+    KW.info='';fx.value='';KW.g.push(v);if(v===KW.ans||KW.g.length>=6)KW.done=true;
+    if(KW.daily)ls.set('xl_kw_'+today(),JSON.stringify({g:KW.g,done:KW.done}));render()},
+  act(a){kwStart(a==='daily');fx.focus()}
+};
+
 /* ================= 이동/키 ================= */
 function frameBoard(){wrap.querySelectorAll('.bframe').forEach(x=>x.remove());const cs=wrap.querySelectorAll('td[data-i],td[data-b]');if(!cs.length)return;
-  const wr=wrap.getBoundingClientRect();let l=1e9,t=1e9,r=-1e9,b=-1e9;
-  cs.forEach(c=>{const q=c.getBoundingClientRect();if(q.left<l)l=q.left;if(q.top<t)t=q.top;if(q.right>r)r=q.right;if(q.bottom>b)b=q.bottom});
-  const f=document.createElement('div');f.className='bframe';
-  f.style.cssText='left:'+(l-wr.left+wrap.scrollLeft-1)+'px;top:'+(t-wr.top+wrap.scrollTop-1)+'px;width:'+(r-l+2)+'px;height:'+(b-t+2)+'px';
-  wrap.appendChild(f)}
+  const wr=wrap.getBoundingClientRect(),G={};
+  cs.forEach(c=>{const k=c.dataset.g||'_',q=c.getBoundingClientRect(),g=G[k]=G[k]||{l:1e9,t:1e9,r:-1e9,b:-1e9};
+    if(q.left<g.l)g.l=q.left;if(q.top<g.t)g.t=q.top;if(q.right>g.r)g.r=q.right;if(q.bottom>g.b)g.b=q.bottom});
+  Object.values(G).forEach(g=>{const f=document.createElement('div');f.className='bframe';
+    f.style.cssText='left:'+(g.l-wr.left+wrap.scrollLeft-1)+'px;top:'+(g.t-wr.top+wrap.scrollTop-1)+'px;width:'+(g.r-g.l+2)+'px;height:'+(g.b-g.t+2)+'px';
+    wrap.appendChild(f)})}
 function render(){sheets[S.sheet].render();frameBoard();curCell=null;status()}
 function go(s){
   if(!sheets[s])return;
@@ -822,6 +1181,9 @@ function go(s){
   const t=document.querySelector('.tab.on');if(t)t.scrollIntoView({block:'nearest',inline:'nearest'});
 }
 $('#tabs').addEventListener('click',e=>{const t=e.target.closest('.tab');if(t)go(t.dataset.s)});
+$('#tL').addEventListener('click',()=>$('#tabs').scrollBy({left:-240,behavior:'smooth'}));
+$('#tR').addEventListener('click',()=>$('#tabs').scrollBy({left:240,behavior:'smooth'}));
+$('#tabs').addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){$('#tabs').scrollLeft+=e.deltaY;e.preventDefault()}},{passive:false});
 function status(){const n=S.online.length;$('#stR').textContent=n?('개수: '+n):'';$('#stR').title=n?S.online.join(', '):''}
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){e.preventDefault();
@@ -863,13 +1225,21 @@ const HELP=[
  ['리스크점검','지뢰찾기','좌클릭 열기, 우클릭 표시(※), 열린 숫자 클릭 시 주변 열기'],
  ['증감분석','2048','방향키 또는 WASD'],
  ['배치현황','테트리스','←→ 이동, ↑ 회전, ↓ 내리기, Space 바로 놓기, P 일시정지'],
- ['동선분석','스네이크','방향키 또는 WASD, P 일시정지']];
+ ['동선분석','스네이크','방향키 또는 WASD, P 일시정지'],
+ ['용어정리','끝말잇기','수식 입력줄에 단어 입력 후 Enter. 두음법칙 OK(력→역). AI 또는 여럿이'],
+ ['자산배치','배틀십','오른쪽 표 클릭 또는 C7처럼 입력. 상대 배 5척(17칸) 먼저 다 맞히면 승리'],
+ ['결재선','라이어 게임','3명 이상. 설명은 수식 입력줄, 이름 클릭으로 투표. 잡힌 라이어는 제시어 맞히면 역전'],
+ ['적재현황','4목','열 클릭하면 아래로 떨어짐. 4개 먼저 잇기'],
+ ['조건부서식','노노그램','숫자 = 그 줄에 연속으로 칠할 칸 수. 좌클릭 칠하기, 우클릭 ×, 드래그 가능'],
+ ['합계검증','카쿠로','→ 오른쪽 칸들 합, ↓ 아래 칸들 합. 1~9 입력, 한 줄에 같은 숫자 금지'],
+ ['중복제거','같은 색 지우기','같은 색 2칸 이상 묶음 클릭. 크게 지울수록 점수 ↑'],
+ ['코드검증','한글 워들','2글자 단어를 자모 5칸으로 맞히기, 6번 기회. 초록=자리 맞음, 노랑=포함']];
 function showHelp(){$('#dlgT').textContent='도움말';$('.dlg').classList.add('wide');
   $('#dlgB').innerHTML='<div class="help">'+
    '<b>기본</b><br>· 아래 시트 탭 하나가 게임 하나예요. 탭에 초록 점이 뜨면 새 채팅이 온 거예요.<br>'+
    '· <b>Esc</b>: 급할 때 \'요약\' 시트로 숨기기. 한 번 더 누르면 원래 화면으로 돌아와요.<br>'+
    '· <b>파일</b> 메뉴: 내 이름 바꾸기 · 오른쪽 아래 \'개수\'는 지금 접속한 사람 수예요.<br><br>'+
-   '<b>친구와 대전</b> (오목·오델로·숫자야구·빙고·타자)<br>· 한 명이 <b>협업 생성</b> → 나온 4자리 코드를 채팅으로 알려 주기 → 상대가 <b>코드로 참여</b>.<br>'+
+   '<b>친구와 대전</b> (오목·오델로·숫자야구·빙고·타자·끝말잇기·배틀십·라이어·4목)<br>· 한 명이 <b>협업 생성</b> → 나온 4자리 코드를 채팅으로 알려 주기 → 상대가 <b>코드로 참여</b>.<br>'+
    '· 혼자 할 땐 \'새 ○○(AI)\' 버튼으로 컴퓨터와 해요.<br><br>'+
    '<b>시트별 조작</b><table>'+HELP.map(h=>'<tr><td>'+h[0]+'</td><td>'+h[1]+'</td><td>'+h[2]+'</td></tr>').join('')+'</table></div>';
   $('#dlgNo').style.display='none';$('#dlgX').style.display='';dlgCb=null;$('#dlgBg').style.display='flex'}

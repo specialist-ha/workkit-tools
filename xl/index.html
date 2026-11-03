@@ -209,6 +209,7 @@ wrap.addEventListener('mousedown',e=>{
 });
 wrap.addEventListener('mouseover',e=>{const sh=sheets[S.sheet];if(!sh.over)return;const td=e.target.closest('td[data-i]');if(td)sh.over(+td.dataset.i)});
 document.addEventListener('mouseup',()=>{const sh=sheets[S.sheet];if(sh&&sh.up)sh.up()});
+window.addEventListener('contextmenu',e=>{const t=e.target;if(t&&t.closest&&t.closest('input,textarea'))return;e.preventDefault()},true);
 wrap.addEventListener('contextmenu',e=>{const sh=sheets[S.sheet];if(!sh.ctx)return;e.preventDefault();
   const td=e.target.closest('td[data-i]');if(td)sh.ctx(+td.dataset.i)});
 wrap.addEventListener('click',e=>{
@@ -1041,7 +1042,9 @@ function ngCheck(){const b=ngBad();if(!b.r.length&&!b.c.length)ngWin()}
 function ngManual(){if(NG.done){infoDlg('서식 적용 완료','이미 맞힌 문제예요. 아래 버튼으로 새 문제를 시작하세요.');return}
   const b=ngBad();if(!b.r.length&&!b.c.length){ngWin();return}
   NG.bad=b;NG.msg='아직 '+(b.r.length+b.c.length)+'줄이 안 맞아요 (빨간 숫자 줄)';render()}
-function ngSet(i,val){if(NG.done||NG.v[i]===val)return;if(!NG.t0)NG.t0=Date.now();NG.v[i]=val;NG.bad=null;NG.msg='';render();ngCheck()}
+function ngSet(i,val,soft){if(NG.done||NG.v[i]===val)return;if(!NG.t0)NG.t0=Date.now();NG.v[i]=val;NG.bad=null;NG.msg='';
+  if(soft){const td=wrap.querySelector('td[data-i="'+i+'"]');if(td){td.classList.remove('ngf','mute');if(val===1)td.classList.add('ngf');if(val===2)td.classList.add('mute');td.textContent=val===2?'×':''}NG.dirty=true;return}
+  render();ngCheck()}
 sheets.nono={
   render(){if(!NG.sol.length){ngNew(10);return}const n=NG.n,f=NG.v.map(x=>x===1?1:0);
     const rc=Array.from({length:n},(_,y)=>runs(ngRow(NG.sol,y))),cc=Array.from({length:n},(_,x)=>runs(ngCol(NG.sol,x)));
@@ -1054,9 +1057,9 @@ sheets.nono={
     rows.push([]);const W=L+n,bs=Math.max(1,Math.floor(W/4));rows.push([btn('정답 확인','check',bs),btn('5×5','5',bs),btn('10×10','10',bs),btn('15×15','15',bs)]);
     rows.push([txt('좌클릭(드래그): 칠하기 · 우클릭(드래그): × 표시 · 숫자는 그 줄에 연속으로 칠할 칸 수',L+n,'mute')]);
     wrap.innerHTML=table(Array(L+n).fill(24),rows,'',3)},
-  down(i,e){const cur=NG.v[i];const val=e.button===2?(cur===2?0:2):(cur===1?0:1);NG.paint=val;ngSet(i,val)},
-  over(i){if(NG.paint!=null)ngSet(i,NG.paint)},
-  up(){NG.paint=null},
+  down(i,e){if(e.button!==0&&e.button!==2)return;const cur=NG.v[i];const val=e.button===2?(cur===2?0:2):(cur===1?0:1);NG.paint=val;ngSet(i,val,true)},
+  over(i){if(NG.paint!=null)ngSet(i,NG.paint,true)},
+  up(){if(NG.paint==null)return;NG.paint=null;if(NG.dirty){NG.dirty=false;render();ngCheck()}},
   ctx(){},
   act(a){if(a==='check')ngManual();else ngNew(+a)},
   enter(){fx.blur()}

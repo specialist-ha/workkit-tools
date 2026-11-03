@@ -67,6 +67,7 @@ td.given{font-weight:700}td.same{background:#eef5ff}
 .tab.on{background:#fff;color:#1f6e43;font-weight:600;border-bottom:3px solid #1f6e43;line-height:24px}
 .tab .dot{position:absolute;right:4px;top:6px;width:4px;height:4px;border-radius:50%;background:#1f6e43;display:none}
 .tab.new .dot{display:block}
+.tab .tx{display:none;margin-left:5px;color:#888;font-size:11px;padding:0 2px;border-radius:2px}.tab:hover .tx,.tab.on .tx{display:inline}.tab .tx:hover{background:#d0d0d0;color:#c00000}
 .tab .pl{display:inline-block;margin-left:4px;font-size:10px;color:#1f6e43;font-weight:600}
 .tab .pl:before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:#2ea043;margin-right:2px;vertical-align:1px}
 .shl{max-height:260px;overflow:auto;border:1px solid #aaa;background:#fff}
@@ -1166,7 +1167,7 @@ function tabSet(){const pins=getList('xl_pins'),rec=getList('xl_recent').filter(
   const list=FIXED.map(x=>x.s).concat(pins,rec);if(!list.includes(S.sheet))list.push(S.sheet);return list}
 function renderTabs(){const el=$('#tabList');if(!el)return;const pins=getList('xl_pins');
   el.innerHTML=tabSet().map(s=>{const n=s==='sum'||s==='chat'?0:s==='toc'?(S.onlineFull||[]).filter(o=>o.id!==S.uid&&GAMES.some(g=>g.s===o.sheet)).length:playersIn(s).filter(o=>o.id!==S.uid).length;
-    return '<div class="tab'+(s===S.sheet?' on':'')+(s==='chat'&&S.newChat?' new':'')+'" data-s="'+s+'"'+(pins.includes(s)?' title="고정됨"':'')+'>'+esc(tabName(s))+(n?'<span class="pl">'+n+'</span>':'')+'<i class="dot"></i></div>'}).join('');
+    return '<div class="tab'+(s===S.sheet?' on':'')+(s==='chat'&&S.newChat?' new':'')+'" data-s="'+s+'"'+(pins.includes(s)?' title="고정됨"':'')+'>'+esc(tabName(s))+(n?'<span class="pl">'+n+'</span>':'')+(FIXED.some(x=>x.s===s)?'':'<span class="tx" data-x="'+s+'" title="닫기">✕</span>')+'<i class="dot"></i></div>'}).join('');
   const t=el.querySelector('.tab.on');if(t)t.scrollIntoView({block:'nearest',inline:'nearest'})}
 const RTYPE={omok:'omok',oth:'oth',bb:'bb',c4:'c4',bs:'bs',bingo:'bingo',type:'type',wc:'wc',liar:'liar'};
 function openRooms(){const out=[],now=Date.now();
@@ -1228,11 +1229,14 @@ function go(s){
   if(sheets[s].enter)sheets[s].enter();
   const t=document.querySelector('.tab.on');if(t)t.scrollIntoView({block:'nearest',inline:'nearest'});
 }
-$('#tabs').addEventListener('click',e=>{const t=e.target.closest('.tab');if(t)go(t.dataset.s)});
+$('#tabs').addEventListener('click',e=>{const x=e.target.closest('.tx');
+  if(x){const s=x.dataset.x;setList('xl_recent',getList('xl_recent').filter(v=>v!==s));setList('xl_pins',getList('xl_pins').filter(v=>v!==s));
+    if(S.sheet===s)go('toc');else{renderTabs();if(S.sheet==='toc')render()}return}
+  const t=e.target.closest('.tab');if(t)go(t.dataset.s)});
 $('#tL').addEventListener('click',()=>$('#tabs').scrollBy({left:-240,behavior:'smooth'}));
 $('#tR').addEventListener('click',()=>$('#tabs').scrollBy({left:240,behavior:'smooth'}));
 $('#tabs').addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){$('#tabs').scrollLeft+=e.deltaY;e.preventDefault()}},{passive:false});
-function status(){const n=S.online.length;$('#stR').textContent=n?('개수: '+n):'';$('#stR').title=n?S.online.join(', '):''}
+function status(){const n=S.online.length;$('#stR').textContent=n?('개수: '+n):'';$('#stR').title=n?(S.onlineFull||[]).map(o=>o.nick+(o.sheet?' ('+tabName(o.sheet)+')':'')).join('\n'):''}
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){e.preventDefault();
     if($('#dlgBg').style.display==='flex'){if(!mustNick)closeDlg();return}
@@ -1285,7 +1289,7 @@ const HELP=[
  ['코드검증','한글 워들','2글자 단어를 자모 5칸으로 맞히기, 6번 기회. 초록=자리 맞음, 노랑=포함']];
 function showHelp(){$('#dlgT').textContent='도움말';$('.dlg').classList.add('wide');
   $('#dlgB').innerHTML='<div class="help">'+
-   '<b>기본</b><br>· 하단 탭: 요약·집행내역·<b>목차</b> + 고정(★)한 게임 + 최근 한 게임 3개. 전체 게임은 [목차] 시트나 ⊕ 버튼에서.<br>· 하단 ◀▶나 탭을 <b>우클릭</b>하면 전체 시트 목록 창이 떠요. 탭 옆 초록 숫자 = 지금 그 게임을 보고 있는 사람 수.<br>· 집행내역 탭에 초록 점이 뜨면 새 채팅이 온 거예요.<br>'+
+   '<b>기본</b><br>· 하단 탭: 요약·집행내역·<b>목차</b> + 고정(★)한 게임 + 최근 한 게임 3개. 전체 게임은 [목차] 시트나 ⊕ 버튼에서.<br>· 탭 위에 마우스를 올리면 나오는 ✕로 닫기 (목차에서 다시 열 수 있어요).<br>· 하단 ◀▶나 탭을 <b>우클릭</b>하면 전체 시트 목록 창이 떠요. 탭 옆 초록 숫자 = 지금 그 게임을 보고 있는 사람 수.<br>· 집행내역 탭에 초록 점이 뜨면 새 채팅이 온 거예요.<br>'+
    '· <b>Esc</b>: 급할 때 \'요약\' 시트로 숨기기. 한 번 더 누르면 원래 화면으로 돌아와요.<br>'+
    '· <b>파일</b> 메뉴: 내 이름 바꾸기 · 오른쪽 아래 \'개수\'는 지금 접속한 사람 수예요.<br><br>'+
    '<b>친구와 대전</b> (오목·오델로·숫자야구·빙고·타자·끝말잇기·배틀십·라이어·4목)<br>· 한 명이 <b>협업 생성</b> → 친구는 [목차]의 <b>대기 중인 협업</b>에서 [참여] 클릭 (또는 코드로 참여).<br>'+
@@ -1329,8 +1333,11 @@ function init(){
     else if(fresh){S.newChat=true;renderTabs()}
   },()=>{clearTimeout(timer);S.chatState='off';if(S.sheet==='chat')render()});
   FB.ref('.info/connected').on('value',s=>{if(s.val())setPresence()});
-  FB.ref('xl/online').on('value',s=>{const v=s.val()||{};S.onlineFull=Object.entries(v).filter(e=>e[1]&&e[1].nick).map(([id,o])=>({id,nick:o.nick,sheet:o.sheet||''}));
+  FB.ref('xl/online').on('value',s=>{const v=s.val()||{};S.onlineRaw=v;S.onlineFull=Object.entries(v).filter(e=>e[1]&&e[1].nick&&(e[0]===S.uid||Date.now()-(e[1].ts||0)<180000)).map(([id,o])=>({id,nick:o.nick,sheet:o.sheet||''}));
     S.online=S.onlineFull.map(o=>o.nick);status();renderTabs();if(S.sheet==='toc')render()});
+  setInterval(()=>{if(FB&&S.nick)FB.ref('xl/online/'+S.uid).update({nick:S.nick,sheet:S.sheet,ts:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
+    const v=S.onlineRaw||{},L=Object.entries(v).filter(e=>e[1]&&e[1].nick&&(e[0]===S.uid||Date.now()-(e[1].ts||0)<180000));
+    if(L.length!==(S.onlineFull||[]).length){S.onlineFull=L.map(([id,o])=>({id,nick:o.nick,sheet:o.sheet||''}));S.online=S.onlineFull.map(o=>o.nick);status();renderTabs();if(S.sheet==='toc')render()}},60000);
   FB.ref('xl/games').on('value',s=>{S.rooms=s.val()||{};if(S.sheet==='toc')render()});
   setTimeout(()=>{
     const old=Date.now()-864e5;

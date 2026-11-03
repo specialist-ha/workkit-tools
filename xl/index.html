@@ -209,7 +209,10 @@ wrap.addEventListener('mousedown',e=>{
 });
 wrap.addEventListener('mouseover',e=>{const sh=sheets[S.sheet];if(!sh.over)return;const td=e.target.closest('td[data-i]');if(td)sh.over(+td.dataset.i)});
 document.addEventListener('mouseup',()=>{const sh=sheets[S.sheet];if(sh&&sh.up)sh.up()});
-window.addEventListener('contextmenu',e=>{const t=e.target;if(t&&t.closest&&t.closest('input,textarea'))return;e.preventDefault()},true);
+let RH=false,RP=false,RT=0;
+function rRelease(){RH=false;clearTimeout(RT);if(RP){RP=false;render()}}
+window.addEventListener('mousedown',e=>{if(e.button===2){RH=true;clearTimeout(RT);RT=setTimeout(rRelease,700)}},true);
+window.addEventListener('contextmenu',e=>{setTimeout(rRelease,0);const t=e.target;if(t&&t.closest&&t.closest('input,textarea'))return;e.preventDefault()},true);
 wrap.addEventListener('contextmenu',e=>{const sh=sheets[S.sheet];if(!sh.ctx)return;e.preventDefault();
   const td=e.target.closest('td[data-i]');if(td)sh.ctx(+td.dataset.i)});
 wrap.addEventListener('click',e=>{
@@ -1225,7 +1228,7 @@ function frameBoard(){wrap.querySelectorAll('.bframe').forEach(x=>x.remove());co
   Object.values(G).forEach(g=>{const f=document.createElement('div');f.className='bframe';
     f.style.cssText='left:'+(g.l-wr.left+wrap.scrollLeft-1)+'px;top:'+(g.t-wr.top+wrap.scrollTop-1)+'px;width:'+(g.r-g.l+2)+'px;height:'+(g.b-g.t+2)+'px';
     wrap.appendChild(f)})}
-function render(){sheets[S.sheet].render();frameBoard();curCell=null;status()}
+function render(){if(RH){RP=true;return}sheets[S.sheet].render();frameBoard();curCell=null;status()}
 function go(s){
   if(!sheets[s])return;
   const cur=sheets[S.sheet];if(cur.leave)cur.leave();

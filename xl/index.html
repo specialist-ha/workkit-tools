@@ -1159,6 +1159,179 @@ sheets.kw={
   act(a){kwStart(a==='daily');fx.focus()}
 };
 
+/* ================= 공통: 카드/타일 표시 ================= */
+const SUIT='♠♥♦♣',suitRed=s=>s===1||s===2,RANK=['','A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const cardHtml=c=>'<span style="color:'+(suitRed(c.s)?'#c00000':'#222')+'">'+SUIT[c.s]+RANK[c.r]+'</span>';
+
+/* ================= 솔리테어 (카드관리) ================= */
+const SO={stock:[],waste:[],found:[[],[],[],[]],tab:[],sel:null,moves:0,t0:0,t1:0,won:false,lastClick:{i:-1,t:0},hist:[]};
+function soNew(){const d=[];for(let s=0;s<4;s++)for(let r=1;r<=13;r++)d.push({r,s,up:false});shuffle(d);
+  SO.tab=[];for(let c=0;c<7;c++){const col=[];for(let k=0;k<=c;k++)col.push(d.pop());col[col.length-1].up=true;SO.tab.push(col)}
+  Object.assign(SO,{stock:d,waste:[],found:[[],[],[],[]],sel:null,moves:0,t0:0,t1:0,won:false,hist:[]});render()}
+const soSnap=()=>JSON.stringify({stock:SO.stock,waste:SO.waste,found:SO.found,tab:SO.tab,moves:SO.moves});
+function soPush(){SO.hist.push(soSnap());if(SO.hist.length>200)SO.hist.shift();if(!SO.t0)SO.t0=Date.now()}
+function soFlip(){SO.tab.forEach(col=>{if(col.length&&!col[col.length-1].up)col[col.length-1].up=true})}
+function soCheck(){if(SO.found.every(f=>f.length===13)){SO.won=true;SO.t1=Date.now();setTimeout(()=>infoDlg('정리 완료','솔리테어 성공! '+SO.moves+'수, '+Math.round((SO.t1-SO.t0)/1000)+'초'),50)}}
+function soCards(sel){if(!sel)return[];if(sel.from==='waste')return SO.waste.slice(-1);if(sel.from==='found')return SO.found[sel.k].slice(-1);return SO.tab[sel.col].slice(sel.idx)}
+function soCanTab(cards,col){const t=SO.tab[col],c=cards[0];if(!c)return false;if(!t.length)return c.r===13;const top=t[t.length-1];return top.up&&suitRed(top.s)!==suitRed(c.s)&&top.r===c.r+1}
+function soCanFound(cards,k){if(cards.length!==1)return false;const c=cards[0],f=SO.found[k];return f.length?(f[f.length-1].s===c.s&&f[f.length-1].r===c.r-1):c.r===1}
+function soRemove(sel){if(sel.from==='waste')return SO.waste.splice(-1);if(sel.from==='found')return SO.found[sel.k].splice(-1);return SO.tab[sel.col].splice(sel.idx)}
+function soMove(sel,to){const cards=soCards(sel);if(to.t==='tab'&&!(sel.from==='tab'&&sel.col===to.col)&&soCanTab(cards,to.col)){soPush();soRemove(sel);SO.tab[to.col].push(...cards)}
+  else if(to.t==='found'&&soCanFound(cards,to.k)){soPush();soRemove(sel);SO.found[to.k].push(cards[0])}else return false;
+  SO.moves++;soFlip();soCheck();return true}
+function soAutoFound(sel){const cards=soCards(sel);if(cards.length!==1)return false;for(let k=0;k<4;k++)if(soCanFound(cards,k))return soMove(sel,{t:'found',k});return false}
+function soAutoAll(){let moved=true,n=0;while(moved&&n<60){moved=false;n++;
+  if(SO.waste.length&&soAutoFound({from:'waste'}))moved=true;
+  for(let c=0;c<7&&!moved;c++){const col=SO.tab[c];if(col.length&&soAutoFound({from:'tab',col:c,idx:col.length-1}))moved=true}}
+  SO.sel=null;render()}
+sheets.sol={
+  render(){if(!SO.tab.length){soNew();return}const sel=SO.sel;const isSel=(f)=>sel&&f(sel);
+    const st=SO.won?'정리 완료 ('+SO.moves+'수)':'정리 중 · '+SO.moves+'수';
+    const rows=[[hd('카드 관리',2),hd(st,3),hd('완료 '+SO.found.reduce((a,f)=>a+f.length,0)+'/52',2,'r')]];
+    const cell=(v,i,cls,raw)=>({v,raw:raw?1:0,c:'cell big'+(cls?' '+cls:''),a:' data-i="'+i+'" style="height:30px"'});
+    const top=[];top.push(cell(SO.stock.length?'▒ '+SO.stock.length:'↻',1000,SO.stock.length?'gray':'mute'));
+    const w=SO.waste[SO.waste.length-1];top.push(w?cell(cardHtml(w),1001,isSel(s=>s.from==='waste')?'asel':'',1):cell('',1001,''));
+    top.push(txt(''));
+    for(let k=0;k<4;k++){const f=SO.found[k],t=f[f.length-1];top.push(t?cell(cardHtml(t),1010+k,isSel(s=>s.from==='found'&&s.k===k)?'asel':'fill',1):cell('<span style="color:#bbb">'+SUIT[k]+'</span>',1010+k,'',1))}
+    rows.push(top);rows.push([]);
+    const H=Math.max(1,...SO.tab.map(c=>c.length));
+    for(let j=0;j<H+1;j++){const r=[];for(let c=0;c<7;c++){const col=SO.tab[c],card=col[j];
+        if(card)r.push(card.up?cell(cardHtml(card),c*100+j,isSel(s=>s.from==='tab'&&s.col===c&&j>=s.idx)?'asel':'',1):cell('▒',c*100+j,'gray'));
+        else if(j===col.length)r.push(cell('',c*100+99,''));else r.push(txt(''))}rows.push(r)}
+    rows.push([]);rows.push([btn('새 게임','new',2),btn('되돌리기','undo',2),btn('자동 올리기','auto',3)]);
+    rows.push([txt('카드 클릭 → 옮길 곳 클릭 · 더블클릭하면 위쪽 보관함으로 · 왼쪽 위 ▒ 클릭하면 한 장씩 넘김',7,'mute')]);
+    wrap.innerHTML=table(Array(7).fill(58),rows,'',2)},
+  cell(i){if(SO.won)return;const now=Date.now(),dbl=SO.lastClick.i===i&&now-SO.lastClick.t<350;SO.lastClick={i,t:now};
+    if(i===1000){soPush();if(SO.stock.length){const c=SO.stock.pop();c.up=true;SO.waste.push(c)}else{SO.stock=SO.waste.reverse().map(c=>Object.assign(c,{up:false}));SO.waste=[]}SO.sel=null;render();return}
+    let target=null,pick=null;
+    if(i===1001){if(SO.waste.length)pick={from:'waste'}}
+    else if(i>=1010&&i<1014){const k=i-1010;target={t:'found',k};if(SO.found[k].length)pick={from:'found',k}}
+    else{const c=Math.floor(i/100),j=i%100;target={t:'tab',col:c};if(j!==99&&SO.tab[c][j]&&SO.tab[c][j].up)pick={from:'tab',col:c,idx:j}}
+    if(dbl&&pick&&soCards(pick).length===1){SO.sel=null;soAutoFound(pick);render();return}
+    if(SO.sel&&target&&soMove(SO.sel,target)){SO.sel=null;render();return}
+    SO.sel=pick&&!(SO.sel&&JSON.stringify(SO.sel)===JSON.stringify(pick))?pick:null;render()},
+  act(a){if(a==='new')soNew();if(a==='undo'&&SO.hist.length){Object.assign(SO,JSON.parse(SO.hist.pop()),{sel:null,won:false});render()}if(a==='auto'){soPush();soAutoAll()}},
+  enter(){fx.blur()}
+};
+
+/* ================= 루미큐브 (배열정리) ================= */
+const RKC=['#222','#c00000','#1f4e79','#c55a11'];
+const RK={pool:[],racks:[],table:[],turn:0,np:2,melded:[],sel:[],snap:null,placed:[],fromTable:[],winner:-1,info:'',log:[],passes:0};
+const rkVal=t=>t.n||30;
+function rkSet(ts){if(ts.length<3)return null;const nj=ts.filter(t=>t.n),J=ts.length-nj.length;
+  if(ts.length<=4&&nj.length&&nj.every(t=>t.n===nj[0].n)&&new Set(nj.map(t=>t.c)).size===nj.length)return{type:'g',val:nj[0].n*ts.length};
+  if(!nj.length)return{type:'g',val:0};
+  if(ts.length<=13&&nj.every(t=>t.c===nj[0].c)&&new Set(nj.map(t=>t.n)).size===nj.length){const mn=Math.min(...nj.map(t=>t.n)),mx=Math.max(...nj.map(t=>t.n));
+    if(mx-mn+1<=ts.length){const end=Math.min(13,mn+ts.length-1),start=end-ts.length+1;if(start>=1)return{type:'r',val:(start+end)*ts.length/2,start}}}
+  return null}
+function rkOrder(ts){const v=rkSet(ts);if(!v||v.type!=='r')return ts.slice().sort((a,b)=>(a.n||99)-(b.n||99)||a.c-b.c);
+  const nj=ts.filter(t=>t.n),js=ts.filter(t=>!t.n),out=[];for(let k=0;k<ts.length;k++){const n=v.start+k,f=nj.find(t=>t.n===n);out.push(f||js.pop())}return out}
+function rkNew(np){if(np)RK.np=np;const p=[];let id=0;for(let k=0;k<2;k++)for(let c=0;c<4;c++)for(let n=1;n<=13;n++)p.push({id:id++,n,c});p.push({id:id++,n:0,c:1},{id:id++,n:0,c:0});shuffle(p);
+  Object.assign(RK,{pool:p,racks:Array.from({length:RK.np},()=>p.splice(0,14)),table:[],turn:0,melded:Array(RK.np).fill(false),sel:[],placed:[],fromTable:[],winner:-1,info:'',log:[],passes:0});rkSort('n');rkSnap();render()}
+function rkSnap(){RK.snap=JSON.stringify({table:RK.table,rack:RK.racks[0]});RK.placed=[];RK.fromTable=[];RK.sel=[]}
+function rkRevert(){const s=JSON.parse(RK.snap);RK.table=s.table;RK.racks[0]=s.rack;RK.placed=[];RK.fromTable=[];RK.sel=[]}
+function rkSort(m){RK.racks[0].sort(m==='n'?(a,b)=>(a.n||99)-(b.n||99)||a.c-b.c:(a,b)=>a.c-b.c||(a.n||99)-(b.n||99))}
+const rkSum=r=>r.reduce((a,t)=>a+rkVal(t),0);
+function rkDraw(p){if(RK.pool.length){RK.racks[p].push(RK.pool.pop());RK.passes=0}else RK.passes++}
+function rkEndCheck(){const p=RK.racks.findIndex(r=>!r.length);if(p>=0){RK.winner=p}else if(RK.passes>=RK.np){let b=0;RK.racks.forEach((r,i)=>{if(rkSum(r)<rkSum(RK.racks[b]))b=i});RK.winner=b}
+  if(RK.winner>=0){render();setTimeout(()=>infoDlg('배열 정리 종료',RK.winner===0?'승리! 모든 타일을 내려놓았어요.':'AI '+RK.winner+' 승리. 남은 타일 점수: '+rkSum(RK.racks[0])),50);return true}return false}
+function rkNext(){RK.turn=(RK.turn+1)%RK.np;if(RK.turn===0){rkSnap();render();return}render();setTimeout(rkAI,700)}
+function rkFindMelds(rack){const used=new Set(),out=[];const nj=rack.filter(t=>t.n);
+  for(let c=0;c<4;c++){const by={};nj.filter(t=>t.c===c).forEach(t=>{if(!by[t.n])by[t.n]=t});let run=[];
+    for(let n=1;n<=14;n++){if(by[n]&&!used.has(by[n].id))run.push(by[n]);else{if(run.length>=3){run.forEach(t=>used.add(t.id));out.push(run)}run=[]}}}
+  for(let n=1;n<=13;n++){const g=[],cs=new Set();nj.filter(t=>t.n===n&&!used.has(t.id)).forEach(t=>{if(!cs.has(t.c)){cs.add(t.c);g.push(t)}});if(g.length>=3){g.forEach(t=>used.add(t.id));out.push(g)}}
+  return out}
+function rkAI(){if(RK.winner>=0||RK.turn===0)return;const p=RK.turn,rack=RK.racks[p];let played=0;
+  const melds=rkFindMelds(rack);const total=melds.reduce((a,m)=>a+rkSet(m).val,0);
+  if(melds.length&&(RK.melded[p]||total>=30)){melds.forEach(m=>{RK.table.push(m.slice());m.forEach(t=>rack.splice(rack.indexOf(t),1));played+=m.length});RK.melded[p]=true}
+  if(RK.melded[p]){let again=true;while(again){again=false;for(const t of rack.slice()){for(const s of RK.table){if(rkSet(s.concat([t]))){s.push(t);rack.splice(rack.indexOf(t),1);played++;again=true;break}}}}}
+  RK.log.unshift('AI '+p+': '+(played?played+'장 내려놓음':'1장 가져감'));RK.log=RK.log.slice(0,6);
+  if(!played)rkDraw(p);else RK.passes=0;if(!rkEndCheck())rkNext()}
+function rkTileCell(t,i,cls){return{v:t.n?'<b style="color:'+RKC[t.c]+'">'+t.n+'</b>':'<b style="color:'+RKC[t.c]+'">☺</b>',raw:1,c:'cell big'+(cls?' '+cls:''),a:' data-i="'+i+'" data-g="'+(i<200?'r':'t')+'" style="height:28px"'}}
+sheets.rk={
+  render(){if(!RK.racks.length){rkNew(2);return}const my=RK.turn===0&&RK.winner<0;
+    const st=RK.info||(RK.winner>=0?(RK.winner===0?'정리 완료 (승리)':'AI '+RK.winner+' 승리'):my?(RK.melded[0]?'내 차례':'내 차례 — 첫 등록은 내 타일만으로 합계 30 이상'):'AI '+RK.turn+' 정리 중');
+    const rows=[[hd('배열 정리',3),hd(st,12),hd('남은 타일',3),hd(RK.pool.length,2,'r')]];
+    rows.push([hd('상대',3),txt(RK.racks.slice(1).map((r,i)=>'AI '+(i+1)+': '+r.length+'장'+(RK.melded[i+1]?'':' (미등록)')).join('   '),12,'mute'),txt(RK.log[0]||'',6,'mute')]);
+    rows.push([hd('번호',1,'c'),hd('배열 (타일 클릭 = 내 패로 가져오기)',16),hd('추가',2,'c'),hd('검증',2,'c')]);
+    RK.table.forEach((s,k)=>{const r=[txt(k+1,1,'c mute')];const ord=rkOrder(s);ord.slice(0,16).forEach(t=>r.push(rkTileCell(t,200+t.id,RK.placed.includes(t.id)?'hl':'')));
+      while(r.length<17)r.push(txt(''));r.push({v:'＋',c:'btn',a:' data-i="'+(500+k)+'" data-g="t"',span:2});r.push(txt(rkSet(s)?'✔':'✕',2,'c '+(rkSet(s)?'mute':'red b')));rows.push(r)});
+    if(!RK.table.length)rows.push([txt('',1),txt('아직 배열이 없어요. 내 패에서 타일을 골라 [새 배열로 내기]를 누르세요.',16,'mute')]);
+    rows.push([]);rows.push([hd('내 패 ('+RK.racks[0].length+'장)',4),txt(RK.fromTable.length?'가져온 타일 '+RK.fromTable.length+'장을 모두 다시 내려놓아야 해요':'',17,'red')]);
+    const rack=RK.racks[0];for(let y=0;y<Math.ceil(Math.max(1,rack.length)/20);y++){const r=[];rack.slice(y*20,y*20+20).forEach(t=>r.push(rkTileCell(t,t.id,(RK.sel.includes(t.id)?'asel':'')+(RK.fromTable.includes(t.id)?' fill':''))));rows.push(r)}
+    rows.push([]);rows.push([btn('새 배열로 내기','meld',3),btn('턴 종료','end',3),btn('한 장 가져오기','draw',3),btn('되돌리기','revert',3),btn('숫자순','sn',2),btn('색깔순','sc',2),btn('AI 1명','p2',2),btn('AI 3명','p4',3)]);
+    rows.push([txt('같은 숫자 다른 색 3~4장, 또는 같은 색 연속 숫자 3장 이상이 한 배열 · ☺는 아무 타일 · 첫 등록 합계 30 이상 · 내 패를 다 비우면 승리',21,'mute')]);
+    wrap.innerHTML=table(Array(21).fill(30),rows,'',2)},
+  cell(i){if(RK.turn!==0||RK.winner>=0)return;RK.info='';
+    if(i<200){RK.sel=RK.sel.includes(i)?RK.sel.filter(x=>x!==i):RK.sel.concat([i]);render();return}
+    if(i>=500){const k=i-500,s=RK.table[k];if(!RK.sel.length)return;if(!RK.melded[0]){const orig=JSON.parse(RK.snap).table.length;if(k<orig){RK.info='첫 등록 전에는 기존 배열에 붙일 수 없어요';render();return}}
+      const rack=RK.racks[0];RK.sel.forEach(id=>{const t=rack.find(x=>x.id===id);if(t){rack.splice(rack.indexOf(t),1);s.push(t);if(RK.fromTable.includes(id))RK.fromTable=RK.fromTable.filter(x=>x!==id);else RK.placed.push(id)}});RK.sel=[];render();return}
+    const id=i-200;const k=RK.table.findIndex(s=>s.some(t=>t.id===id));if(k<0)return;
+    if(!RK.placed.includes(id)&&!RK.melded[0]){RK.info='첫 등록 전에는 바닥 타일을 가져올 수 없어요';render();return}
+    const s=RK.table[k],t=s.find(x=>x.id===id);s.splice(s.indexOf(t),1);if(!s.length)RK.table.splice(k,1);RK.racks[0].push(t);
+    if(RK.placed.includes(id))RK.placed=RK.placed.filter(x=>x!==id);else RK.fromTable.push(id);RK.sel=[id];render()},
+  act(a){if(a==='p2'||a==='p4'){rkNew(a==='p2'?2:4);return}if(a==='sn'||a==='sc'){rkSort(a==='sn'?'n':'c');render();return}
+    if(RK.turn!==0||RK.winner>=0)return;RK.info='';const rack=RK.racks[0];
+    if(a==='meld'){if(!RK.sel.length){RK.info='내 패에서 타일을 먼저 고르세요';render();return}const ts=RK.sel.map(id=>rack.find(x=>x.id===id)).filter(Boolean);
+      ts.forEach(t=>{rack.splice(rack.indexOf(t),1);if(RK.fromTable.includes(t.id))RK.fromTable=RK.fromTable.filter(x=>x!==t.id);else RK.placed.push(t.id)});RK.table.push(ts);RK.sel=[];render()}
+    if(a==='revert'){rkRevert();render()}
+    if(a==='draw'){rkRevert();rkDraw(0);RK.log.unshift('나: 1장 가져감');if(!rkEndCheck())rkNext()}
+    if(a==='end'){
+      if(RK.fromTable.length){RK.info='바닥에서 가져온 타일을 모두 다시 내려놓아야 해요';render();return}
+      const bad=RK.table.findIndex(s=>!rkSet(s));if(bad>=0){RK.info=(bad+1)+'번 배열이 규칙에 안 맞아요';render();return}
+      if(!RK.placed.length){RK.info='내려놓은 타일이 없어요. [한 장 가져오기]를 누르세요';render();return}
+      if(!RK.melded[0]){const sum=RK.table.filter(s=>s.every(t=>RK.placed.includes(t.id))).reduce((a,s)=>a+rkSet(s).val,0);
+        if(sum<30){RK.info='첫 등록 합계가 '+sum+'점이에요 (30 이상 필요)';render();return}RK.melded[0]=true}
+      RK.log.unshift('나: '+RK.placed.length+'장 내려놓음');RK.passes=0;if(!rkEndCheck())rkNext()}},
+  enter(){fx.blur()}
+};
+
+/* ================= 숫자 클리커 (누적실적) ================= */
+const CLU=[
+ {k:'key',n:'엑셀 단축키 숙달',d:'클릭당 +1',c:15,click:1},
+ {k:'macro',n:'매크로 작성',d:'클릭당 +10',c:900,click:10},
+ {k:'intern',n:'인턴 채용',d:'초당 +1',c:50,ps:1},
+ {k:'staff',n:'대리 배치',d:'초당 +8',c:600,ps:8},
+ {k:'mgr',n:'과장 승진',d:'초당 +45',c:7000,ps:45},
+ {k:'team',n:'팀 신설',d:'초당 +250',c:80000,ps:250},
+ {k:'div',n:'본부 확장',d:'초당 +1,500',c:1e6,ps:1500},
+ {k:'sub',n:'자회사 설립',d:'초당 +9,000',c:1.5e7,ps:9000},
+ {k:'ai',n:'업무 자동화 AI',d:'초당 +60,000',c:2.5e8,ps:60000},
+ {k:'boost',n:'성과급 지급',d:'전체 생산량 ×2',c:20000,mul:2,grow:12}];
+const CL={v:0,total:0,lv:{},t:Date.now(),clicks:0};
+try{const s=JSON.parse(ls.get('xl_clk')||'null');if(s)Object.assign(CL,s)}catch(e){}
+const clLv=k=>CL.lv[k]||0,clCost=u=>Math.ceil(u.c*Math.pow(u.grow||1.15,clLv(u.k)));
+const clMul=()=>Math.pow(2,clLv('boost'));
+const clPC=()=>(1+CLU.filter(u=>u.click).reduce((a,u)=>a+u.click*clLv(u.k),0))*clMul();
+const clPS=()=>CLU.filter(u=>u.ps).reduce((a,u)=>a+u.ps*clLv(u.k),0)*clMul();
+function fmtK(n){n=Math.floor(n);if(n<1e4)return fmt(n);const U=[[1e16,'경'],[1e12,'조'],[1e8,'억'],[1e4,'만']];for(const[v,u]of U)if(n>=v)return (n/v).toFixed(n/v<100?2:1).replace(/\.?0+$/,'')+u;return fmt(n)}
+function clSave(){CL.t=Date.now();ls.set('xl_clk',JSON.stringify(CL))}
+(function(){const off=Math.min(8*3600,(Date.now()-(CL.t||Date.now()))/1000);if(off>5){const g=clPS()*off;CL.v+=g;CL.total+=g;CL.offline=g}})();
+let clLast=Date.now(),clSent=0;
+setInterval(()=>{const now=Date.now(),dt=(now-clLast)/1000;clLast=now;const g=clPS()*dt;CL.v+=g;CL.total+=g;
+  if(S.sheet==='clk'){const a=document.getElementById('clV'),b=document.getElementById('clT');if(a)a.textContent=fmtK(CL.v);if(b)b.textContent=fmtK(CL.total);
+    document.querySelectorAll('td[data-cu]').forEach(td=>{const u=CLU.find(x=>x.k===td.dataset.cu);td.classList.toggle('mute',clCost(u)>CL.v)})}
+  if(now-clSent>30000&&NET.ready&&FB&&S.nick&&CL.total>0){clSent=now;FB.ref('xl/games/rank-clicker').update({ts:now,['p/'+S.uid]:{n:S.nick,v:Math.floor(CL.total),t:now}}).catch(()=>{})}},250);
+setInterval(clSave,5000);window.addEventListener('beforeunload',clSave);
+sheets.clk={
+  render(){const rows=[[txt('누적 실적 현황',4,'b big')],[txt(CL.offline?'자리를 비운 동안 '+fmtK(CL.offline)+'원이 쌓였어요.':'실적 입력 칸을 클릭하면 실적이 오르고, 사람을 뽑으면 자동으로 쌓여요.',8,'mute')],[]];
+    rows.push([hd('보유 실적',2),{v:fmtK(CL.v),c:'r b big',a:' id="clV"',span:2},hd('누적 실적',2),{v:fmtK(CL.total),c:'r',a:' id="clT"',span:2}]);
+    rows.push([hd('클릭당',2),txt(fmtK(clPC()),2,'r'),hd('초당',2),txt(fmtK(clPS()),2,'r')]);rows.push([]);
+    rows.push([txt('',2),{v:'▶ 실적 입력 (클릭)',c:'cell big b',a:' data-i="1" style="height:56px;background:#e2efda;color:#1f6e43"',span:4}]);rows.push([]);
+    rows.push(['항목','내용','보유','단가'].map((v,i)=>hd(v,i<2?2:1,'c')).concat([hd('',2)]));
+    CLU.forEach(u=>{const c=clCost(u);rows.push([txt(u.n,2),txt(u.d,2,'mute'),txt(clLv(u.k),1,'c'),txt(fmtK(c),1,'r'),{v:'구매',c:'btn'+(c>CL.v?' mute':''),a:' data-act="buy:'+u.k+'" data-cu="'+u.k+'"',span:2}])});
+    rows.push([]);const rk=((S.rooms||{})['rank-clicker']||{}).p||{};const list=Object.values(rk).filter(x=>x&&x.n).sort((a,b)=>b.v-a.v).slice(0,10);
+    rows.push([txt('부서별 실적 순위',4,'b')]);
+    if(!list.length)rows.push([txt(NET.ready?'아직 기록이 없어요. 30초마다 내 실적이 자동으로 올라가요.':'서버 연결 후 표시됩니다.',8,'mute')]);
+    list.forEach((x,i)=>rows.push([txt(i+1,1,'c'),txt(x.n,2,x.n===S.nick?'b':''),txt(fmtK(x.v),2,'r')]));
+    rows.push([]);rows.push([btn('초기화','reset',2)]);
+    wrap.innerHTML=table([60,90,90,90,60,80,60,60],rows,'',3)},
+  cell(i){if(i!==1)return;const g=clPC();CL.v+=g;CL.total+=g;CL.clicks++;CL.offline=0;const a=document.getElementById('clV'),b=document.getElementById('clT');if(a)a.textContent=fmtK(CL.v);if(b)b.textContent=fmtK(CL.total)},
+  act(a){if(a.startsWith('buy:')){const u=CLU.find(x=>x.k===a.slice(4));const c=clCost(u);if(CL.v<c)return;CL.v-=c;CL.lv[u.k]=clLv(u.k)+1;CL.offline=0;clSave();render();return}
+    if(a==='reset')confirmDlg('실적 초기화','누적 실적과 구매한 항목이 모두 사라져요. 계속할까요?',()=>{Object.assign(CL,{v:0,total:0,lv:{},clicks:0,offline:0});clSave();render()})},
+  enter(){fx.blur()}
+};
+
 /* ================= 목차 (탭 정리) ================= */
 const GAMES=[
  {s:'omok',t:'검토표',g:'오목',k:'AI·1:1'},{s:'oth',t:'승인현황',g:'오델로',k:'AI·1:1'},{s:'bb',t:'대조표',g:'숫자야구',k:'혼자·1:1'},
@@ -1166,7 +1339,8 @@ const GAMES=[
  {s:'bs',t:'자산배치',g:'배틀십',k:'AI·1:1'},{s:'liar',t:'결재선',g:'라이어 게임',k:'3명 이상'},{s:'c4',t:'적재현황',g:'4목',k:'AI·1:1'},
  {s:'apple',t:'정산표',g:'사과게임',k:'혼자'},{s:'sudoku',t:'입력검증',g:'스도쿠',k:'혼자'},{s:'mine',t:'리스크점검',g:'지뢰찾기',k:'혼자'},
  {s:'t48',t:'증감분석',g:'2048',k:'혼자'},{s:'tet',t:'배치현황',g:'테트리스',k:'혼자'},{s:'snake',t:'동선분석',g:'스네이크',k:'혼자'},
- {s:'nono',t:'조건부서식',g:'노노그램',k:'혼자'},{s:'kak',t:'합계검증',g:'카쿠로',k:'혼자'},{s:'same',t:'중복제거',g:'같은 색 지우기',k:'혼자'},{s:'kw',t:'코드검증',g:'한글 워들',k:'혼자'}];
+ {s:'nono',t:'조건부서식',g:'노노그램',k:'혼자'},{s:'kak',t:'합계검증',g:'카쿠로',k:'혼자'},{s:'same',t:'중복제거',g:'같은 색 지우기',k:'혼자'},{s:'kw',t:'코드검증',g:'한글 워들',k:'혼자'},
+ {s:'rk',t:'배열정리',g:'루미큐브',k:'AI 1~3명'},{s:'sol',t:'카드관리',g:'솔리테어',k:'혼자'},{s:'clk',t:'누적실적',g:'숫자 클리커',k:'혼자·순위'}];
 const FIXED=[{s:'sum',t:'요약'},{s:'chat',t:'집행내역'},{s:'toc',t:'목차'}];
 const ALLSH=FIXED.concat(GAMES);
 const tabName=s=>(ALLSH.find(x=>x.s===s)||{}).t||s;
@@ -1298,7 +1472,10 @@ const HELP=[
  ['조건부서식','노노그램','숫자 = 그 줄에 연속으로 칠할 칸 수. 좌클릭 칠하기, 우클릭 ×, 드래그 가능. 다 맞으면 자동으로 정답 창, [정답 확인]으로 틀린 줄 표시'],
  ['합계검증','카쿠로','→ 오른쪽 칸들 합, ↓ 아래 칸들 합. 1~9 입력, 한 줄에 같은 숫자 금지'],
  ['중복제거','같은 색 지우기','같은 색 2칸 이상 묶음 클릭. 크게 지울수록 점수 ↑'],
- ['코드검증','한글 워들','2글자 단어를 자모 5칸으로 맞히기, 6번 기회. 초록=자리 맞음, 노랑=포함']];
+ ['코드검증','한글 워들','2글자 단어를 자모 5칸으로 맞히기, 6번 기회. 초록=자리 맞음, 노랑=포함'],
+ ['배열정리','루미큐브','타일 골라 [새 배열로 내기] 또는 배열 옆 ＋. 바닥 타일 클릭으로 재배열. 첫 등록 30점 이상, 패를 다 비우면 승리'],
+ ['카드관리','솔리테어','카드 클릭 → 옮길 곳 클릭, 더블클릭으로 보관함. 빨강·검정 번갈아 내림차순, 빈 칸엔 K'],
+ ['누적실적','숫자 클리커','실적 입력 칸 클릭, 번 돈으로 사람 채용 → 자동 수입. 꺼 둬도 최대 8시간 쌓임. 친구들과 순위 비교']];
 function showHelp(){$('#dlgT').textContent='도움말';$('.dlg').classList.add('wide');
   $('#dlgB').innerHTML='<div class="help">'+
    '<b>기본</b><br>· 하단 탭: 요약·집행내역·<b>목차</b> + 고정(★)한 게임 + 최근 한 게임 3개. 전체 게임은 [목차] 시트나 ⊕ 버튼에서.<br>· 탭 위에 마우스를 올리면 나오는 ✕로 닫기 (목차에서 다시 열 수 있어요).<br>· 하단 ◀▶나 탭을 <b>우클릭</b>하면 전체 시트 목록 창이 떠요. 탭 옆 초록 숫자 = 지금 그 게임을 보고 있는 사람 수.<br>· 집행내역 탭에 초록 점이 뜨면 새 채팅이 온 거예요.<br>'+

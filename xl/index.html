@@ -37,7 +37,7 @@ table.g th{background:#f3f3f3;color:#555;text-align:center;border-color:#d0d0d0;
 table.g td.rn{background:#f3f3f3;color:#555;text-align:center;border-color:#d0d0d0;position:sticky;left:0;z-index:1;font-size:11px}
 table.g th.corner{left:0;z-index:3}
 td.cur{outline:2px solid #1f6e43;outline-offset:-2px}
-.sel2{background:#bdd7ee}td.sunk{background:#c55a11;color:#fff}td.ngf{background:#305496}
+.sel2{background:#bdd7ee}td.sunk{background:#c55a11;color:#fff}td.ngf{background:#305496}td.ngok{background:#548235}td.ngbad{background:#ffc7ce;color:#9c0006;font-weight:700}
 td.kkc{background:#595959;color:#fff;padding:0 3px}td.kkb{background:#7f7f7f}td.sgh{outline:2px solid #1f6e43;outline-offset:-2px}
 .tabs .nav span{cursor:pointer;padding:0 3px}.tabs .nav span:hover{color:#1f6e43}
 .bframe{position:absolute;pointer-events:none;border:2px solid #1f6e43;box-shadow:0 0 0 3px rgba(31,110,67,.12);z-index:1}
@@ -1029,30 +1029,36 @@ sheets.c4={
 };
 
 /* ================= 노노그램 (조건부서식) ================= */
-const NG={n:10,sol:[],v:[],done:false,t0:0,paint:null};
+const NG={n:10,sol:[],v:[],done:false,t0:0,t1:0,paint:null,bad:null,msg:''};
 const runs=a=>{const r=[];let c=0;a.forEach(x=>{if(x)c++;else if(c){r.push(c);c=0}});if(c)r.push(c);return r.length?r:[0]};
-function ngNew(n){if(n)NG.n=n;const N2=NG.n;NG.sol=Array.from({length:N2*N2},()=>Math.random()<.58?1:0);NG.v=Array(N2*N2).fill(0);NG.done=false;NG.t0=0;render()}
+function ngNew(n){if(n)NG.n=n;const N2=NG.n;NG.sol=Array.from({length:N2*N2},()=>Math.random()<.58?1:0);NG.v=Array(N2*N2).fill(0);NG.done=false;NG.t0=0;NG.t1=0;NG.bad=null;NG.msg='';render()}
 const ngRow=(a,y)=>a.slice(y*NG.n,y*NG.n+NG.n),ngCol=(a,x)=>Array.from({length:NG.n},(_,y)=>a[y*NG.n+x]);
 const same=(a,b)=>a.length===b.length&&a.every((x,i)=>x===b[i]);
-function ngCheck(){const f=NG.v.map(x=>x===1?1:0);for(let k=0;k<NG.n;k++){if(!same(runs(ngRow(f,k)),runs(ngRow(NG.sol,k)))||!same(runs(ngCol(f,k)),runs(ngCol(NG.sol,k))))return}NG.done=true}
-function ngSet(i,val){if(NG.done||NG.v[i]===val)return;if(!NG.t0)NG.t0=Date.now();NG.v[i]=val;ngCheck();render()}
+function ngBad(){const f=NG.v.map(x=>x===1?1:0),r=[],c=[];for(let k=0;k<NG.n;k++){if(!same(runs(ngRow(f,k)),runs(ngRow(NG.sol,k))))r.push(k);if(!same(runs(ngCol(f,k)),runs(ngCol(NG.sol,k))))c.push(k)}return{r,c}}
+function ngWin(){NG.done=true;NG.t1=Date.now();NG.bad=null;NG.msg='';const sec=Math.round((NG.t1-(NG.t0||NG.t1))/1000);
+  render();setTimeout(()=>infoDlg('서식 적용 완료','정답입니다! 모든 줄의 숫자 조건이 맞아요. ('+NG.n+'×'+NG.n+', '+sec+'초)'),50)}
+function ngCheck(){const b=ngBad();if(!b.r.length&&!b.c.length)ngWin()}
+function ngManual(){if(NG.done){infoDlg('서식 적용 완료','이미 맞힌 문제예요. 아래 버튼으로 새 문제를 시작하세요.');return}
+  const b=ngBad();if(!b.r.length&&!b.c.length){ngWin();return}
+  NG.bad=b;NG.msg='아직 '+(b.r.length+b.c.length)+'줄이 안 맞아요 (빨간 숫자 줄)';render()}
+function ngSet(i,val){if(NG.done||NG.v[i]===val)return;if(!NG.t0)NG.t0=Date.now();NG.v[i]=val;NG.bad=null;NG.msg='';render();ngCheck()}
 sheets.nono={
   render(){if(!NG.sol.length){ngNew(10);return}const n=NG.n,f=NG.v.map(x=>x===1?1:0);
     const rc=Array.from({length:n},(_,y)=>runs(ngRow(NG.sol,y))),cc=Array.from({length:n},(_,x)=>runs(ngCol(NG.sol,x)));
     const L=Math.max(...rc.map(r=>r.length)),K=Math.max(...cc.map(c=>c.length));const rows=[];
-    rows.push([hd('서식 규칙',Math.max(2,L)),hd(n+'×'+n,3,'c'),hd('상태',2),hd(NG.done?'적용 완료 ('+Math.round((Date.now()-NG.t0)/1000)+'초)':'적용 중',Math.max(3,n-3))]);
-    for(let k=0;k<K;k++){const r=Array.from({length:L},()=>txt(''));cc.forEach((c,x)=>{const ok=same(runs(ngCol(f,x)),c);const v=c[c.length-K+k];r.push(txt(v==null?'':v,1,'c '+(ok?'mute':'b')))});rows.push(r)}
-    for(let y=0;y<n;y++){const ok=same(runs(ngRow(f,y)),rc[y]);const r=Array.from({length:L},(_,k)=>{const v=rc[y][rc[y].length-L+k];return txt(v==null?'':v,1,'c '+(ok?'mute':'b'))});
-      for(let x=0;x<n;x++){const i=y*n+x,s=NG.v[i];r.push({v:s===2?'×':'',c:'cell'+(s===1?' ngf':s===2?' mute':''),a:' data-i="'+i+'" style="'+(x%5===4&&x<n-1?'border-right:2px solid #999;':'')+(y%5===4&&y<n-1?'border-bottom:2px solid #999;':'')+'"'})}
+    const bad=NG.bad||{r:[],c:[]};rows.push([hd(n+'×'+n,L,'c'),hd(NG.done?'✔ 정답 ('+Math.round((NG.t1-(NG.t0||NG.t1))/1000)+'초)':NG.msg||'적용 중',n,NG.done?'b':'')]);
+    for(let k=0;k<K;k++){const r=Array.from({length:L},()=>txt(''));cc.forEach((c,x)=>{const ok=same(runs(ngCol(f,x)),c);const v=c[c.length-K+k];r.push(txt(v==null?'':v,1,'c '+(bad.c.includes(x)&&v!=null?'ngbad':ok?'mute':'b')))});rows.push(r)}
+    for(let y=0;y<n;y++){const ok=same(runs(ngRow(f,y)),rc[y]);const r=Array.from({length:L},(_,k)=>{const v=rc[y][rc[y].length-L+k];return txt(v==null?'':v,1,'c '+(bad.r.includes(y)&&v!=null?'ngbad':ok?'mute':'b'))});
+      for(let x=0;x<n;x++){const i=y*n+x,s=NG.v[i];r.push({v:s===2?'×':'',c:'cell'+(s===1?(NG.done?' ngok':' ngf'):s===2?' mute':''),a:' data-i="'+i+'" style="'+(x%5===4&&x<n-1?'border-right:2px solid #999;':'')+(y%5===4&&y<n-1?'border-bottom:2px solid #999;':'')+'"'})}
       rows.push(r)}
-    rows.push([]);rows.push([btn('5×5','5',3),btn('10×10','10',3),btn('15×15','15',3)]);
+    rows.push([]);const W=L+n,bs=Math.max(1,Math.floor(W/4));rows.push([btn('정답 확인','check',bs),btn('5×5','5',bs),btn('10×10','10',bs),btn('15×15','15',bs)]);
     rows.push([txt('좌클릭(드래그): 칠하기 · 우클릭(드래그): × 표시 · 숫자는 그 줄에 연속으로 칠할 칸 수',L+n,'mute')]);
     wrap.innerHTML=table(Array(L+n).fill(24),rows,'',3)},
   down(i,e){const cur=NG.v[i];const val=e.button===2?(cur===2?0:2):(cur===1?0:1);NG.paint=val;ngSet(i,val)},
   over(i){if(NG.paint!=null)ngSet(i,NG.paint)},
   up(){NG.paint=null},
   ctx(){},
-  act(a){ngNew(+a)},
+  act(a){if(a==='check')ngManual();else ngNew(+a)},
   enter(){fx.blur()}
 };
 
@@ -1283,7 +1289,7 @@ const HELP=[
  ['자산배치','배틀십','오른쪽 표 클릭 또는 C7처럼 입력. 상대 배 5척(17칸) 먼저 다 맞히면 승리'],
  ['결재선','라이어 게임','3명 이상. 설명은 수식 입력줄, 이름 클릭으로 투표. 잡힌 라이어는 제시어 맞히면 역전'],
  ['적재현황','4목','열 클릭하면 아래로 떨어짐. 4개 먼저 잇기'],
- ['조건부서식','노노그램','숫자 = 그 줄에 연속으로 칠할 칸 수. 좌클릭 칠하기, 우클릭 ×, 드래그 가능'],
+ ['조건부서식','노노그램','숫자 = 그 줄에 연속으로 칠할 칸 수. 좌클릭 칠하기, 우클릭 ×, 드래그 가능. 다 맞으면 자동으로 정답 창, [정답 확인]으로 틀린 줄 표시'],
  ['합계검증','카쿠로','→ 오른쪽 칸들 합, ↓ 아래 칸들 합. 1~9 입력, 한 줄에 같은 숫자 금지'],
  ['중복제거','같은 색 지우기','같은 색 2칸 이상 묶음 클릭. 크게 지울수록 점수 ↑'],
  ['코드검증','한글 워들','2글자 단어를 자모 5칸으로 맞히기, 6번 기회. 초록=자리 맞음, 노랑=포함']];
@@ -1297,6 +1303,8 @@ function showHelp(){$('#dlgT').textContent='도움말';$('.dlg').classList.add('
    '<b>시트별 조작</b><table>'+HELP.map(h=>'<tr><td>'+h[0]+'</td><td>'+h[1]+'</td><td>'+h[2]+'</td></tr>').join('')+'</table></div>';
   $('#dlgNo').style.display='none';$('#dlgX').style.display='';dlgCb=null;$('#dlgBg').style.display='flex'}
 $('#mHelp').addEventListener('click',showHelp);
+function infoDlg(title,msg){$('#dlgT').textContent=title;$('#dlgB').innerHTML='<div>'+esc(msg)+'</div>';
+  $('#dlgNo').style.display='none';$('#dlgX').style.display='';dlgCb=null;$('#dlgBg').style.display='flex'}
 function confirmDlg(title,msg,cb){$('#dlgT').textContent=title;$('#dlgB').innerHTML='<div>'+esc(msg)+'</div>';
   $('#dlgNo').style.display='';$('#dlgX').style.display='';dlgCb=()=>cb();$('#dlgBg').style.display='flex'}
 
